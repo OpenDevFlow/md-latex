@@ -1,0 +1,97 @@
+name: Publish Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (e.g. 0.1.0)'
+        required: true
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Extract Release Notes from CHANGELOG
+        id: extract_notes
+        run: |
+          # Awk script to extract text between '## [Unreleased]' and the next '## ['
+          awk '/^## \[Unreleased\]/{flag=1; next} /^## \[/{flag=0} flag' CHANGELOG.md > release_notes.md
+          
+          # Set multiline output for GitHub release
+          EOF=$(dd if=/dev/urandom bs=15 count=1 status=none | base64)
+          echo "notes<<$EOF" >> $GITHUB_OUTPUT
+          cat release_notes.md >> $GITHUB_OUTPUT
+          echo "$EOF" >> $GITHUB_OUTPUT
+
+      - name: Create Git Tag
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git tag -a "v${{ github.event.inputs.version }}" -m "Release v${{ github.event.inputs.version }}"
+          git push origin "v${{ github.event.inputs.version }}"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: "v${{ github.event.inputs.version }}"
+          name: "Release v${{ github.event.inputs.version }}"
+          body_path: release_notes.md
+          # GitHub automatically attaches source code (.zip and .tar.gz) for releases
+
+      - name: Update Package Versions
+        run: |
+          node -e "
+          const fs = require('fs');
+          const version = '${{ github.event.inputs.version }}';
+          const files = ['package.json', 'apps/web/package.json', 'packages/transpiler/package.json'];
+          files.forEach(file => {
+            if (fs.existsSync(file)) {
+              const data = JSON.parse(fs.readFileSync(file, 'utf8'));
+              data.version = version;
+              fs.writeFileSync(file, JSON.stringify(data, null, 2) + '\n');
+              console.log(\`Updated \${file} to \${version}\`);
+            }
+          });
+          "
+
+      - name: Update CHANGELOG.md
+        run: |
+          VERSION="${{ github.event.inputs.version }}"
+          DATE=$(date +'%Y-%m-%d')
+          
+          # Replace '## [Unreleased]' with '## [Unreleased]\n\n## [VERSION] - DATE'
+          awk -v ver="$VERSION" -v date="$DATE" '
+            /^## \[Unreleased\]/ {
+              print "## [Unreleased]\n\n## [" ver "] - " date
+              next
+            }
+            {print}
+          ' CHANGELOG.md > CHANGELOG.tmp.md
+          mv CHANGELOG.tmp.md CHANGELOG.md
+
+      - name: Create Pull Request for Version Bump
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "chore(release): bump version to ${{ github.event.inputs.version }}"
+          title: "chore(release): bump version to ${{ github.event.inputs.version }}"
+          branch: "release/v${{ github.event.inputs.version }}"
+          body: |
+            Automated PR for version bump after releasing \`v${{ github.event.inputs.version }}\`.
+            
+            - Updates \`package.json\` files to \`${{ github.event.inputs.version }}\`.
+            - Updates \`CHANGELOG.md\` to stamp the release date and insert a new unreleased section.
