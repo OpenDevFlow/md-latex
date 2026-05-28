@@ -56,7 +56,7 @@ function buildPreamble(
   const extras = userPackages
     .map((pkg) => {
       if (pkg.includes('[')) {
-        const m = pkg.match(/^\[([^\]]+)\]\s*(.+)$/);
+        const m = pkg.match(/^\[([^\]]+)\]\s*(\S.*)$/);
         return m ? `\\usepackage[${m[1]}]{${m[2].trim()}}` : `\\usepackage{${pkg}}`;
       }
       return `\\usepackage{${pkg}}`;
