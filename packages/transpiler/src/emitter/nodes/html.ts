@@ -7,10 +7,13 @@ import type { NodeEmitter } from '../../types.js';
 export const htmlEmitter: NodeEmitter = (node: any) => {
   const value: string = node.value ?? '';
   // Strip HTML comments robustly
-  const stripped = value.replace(/<!--[\s\S]*?-->/g, '');
+  const stripped = value.replace(/<!--[\s\S]*?-->/g, ' ');
   if (!stripped.trim()) return '';
   
+  // Defang any unclosed HTML comments for CodeQL
+  const safeStripped = stripped.replace(/<!--/g, '< !--');
+  
   // Pass through as a LaTeX comment for transparency
-  const lines = stripped.split('\n').map((l: string) => `% HTML: ${l}`);
+  const lines = safeStripped.split('\n').map((l: string) => `% HTML: ${l}`);
   return `\n${lines.join('\n')}\n`;
 };
