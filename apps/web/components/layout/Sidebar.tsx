@@ -25,6 +25,7 @@ export function Sidebar() {
   const currentDocId = useEditorStore((s) => s.currentDocId);
   const loadDocument = useEditorStore((s) => s.loadDocument);
   const newDocument = useEditorStore((s) => s.newDocument);
+  const deleteDocument = useEditorStore((s) => s.deleteDocument);
   const content = useEditorStore((s) => s.content);
 
   const [treeExpanded, setTreeExpanded] = useState(true);
