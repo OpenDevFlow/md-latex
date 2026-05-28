@@ -44,7 +44,7 @@ function escapeHtml(str: string): string {
 interface Frontmatter {
   title?: string;
   author?: string | string[];
-  date?: string;
+  date?: string | Date;
   abstract?: string;
 }
 
@@ -154,7 +154,7 @@ export function useTranspiler() {
         if (result.sourceMap) {
           setLatexSourceMap(result.sourceMap);
         } else {
-          setLatexSourceMap({});
+          setLatexSourceMap([]);
         }
 
         // Render preview in parallel
