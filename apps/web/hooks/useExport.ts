@@ -35,12 +35,70 @@ export function useExport() {
 
   async function exportPDF(filename = 'document.pdf'): Promise<boolean> {
     try {
-      // Create a hidden form to submit directly to texlive.net
-      // This bypasses CORS and works natively in static Next.js exports
+      // Create a modal overlay
+      const overlay = document.createElement('div');
+      overlay.style.position = 'fixed';
+      overlay.style.top = '0';
+      overlay.style.left = '0';
+      overlay.style.width = '100vw';
+      overlay.style.height = '100vh';
+      overlay.style.backgroundColor = 'rgba(0, 0, 0, 0.75)';
+      overlay.style.backdropFilter = 'blur(4px)';
+      overlay.style.zIndex = '9999';
+      overlay.style.display = 'flex';
+      overlay.style.flexDirection = 'column';
+      overlay.style.alignItems = 'center';
+      overlay.style.justifyContent = 'center';
+
+      const header = document.createElement('div');
+      header.style.width = '90%';
+      header.style.maxWidth = '1200px';
+      header.style.display = 'flex';
+      header.style.justifyContent = 'space-between';
+      header.style.alignItems = 'center';
+      header.style.padding = '12px 0';
+      header.style.color = '#fff';
+
+      const title = document.createElement('h3');
+      title.innerText = 'PDF Export (Generated via texlive.net)';
+      title.style.margin = '0';
+      title.style.fontSize = '16px';
+      title.style.fontWeight = '500';
+
+      const closeBtn = document.createElement('button');
+      closeBtn.innerText = 'Close';
+      closeBtn.style.padding = '6px 16px';
+      closeBtn.style.background = 'var(--color-accent)';
+      closeBtn.style.color = '#fff';
+      closeBtn.style.border = 'none';
+      closeBtn.style.borderRadius = '4px';
+      closeBtn.style.cursor = 'pointer';
+      closeBtn.style.fontWeight = '600';
+      closeBtn.onclick = () => document.body.removeChild(overlay);
+
+      header.appendChild(title);
+      header.appendChild(closeBtn);
+
+      const iframeName = 'pdf-export-iframe-' + Date.now();
+      const iframe = document.createElement('iframe');
+      iframe.name = iframeName;
+      iframe.style.width = '90%';
+      iframe.style.maxWidth = '1200px';
+      iframe.style.height = '85vh';
+      iframe.style.border = '1px solid var(--color-border)';
+      iframe.style.borderRadius = '8px';
+      iframe.style.backgroundColor = '#fff';
+
+      overlay.appendChild(header);
+      overlay.appendChild(iframe);
+      document.body.appendChild(overlay);
+
+      // Create a hidden form to submit directly to texlive.net targeting the iframe
       const form = document.createElement('form');
       form.method = 'POST';
       form.action = 'https://texlive.net/cgi-bin/latexcgi';
-      form.target = '_blank'; // Open download in new tab
+      form.enctype = 'multipart/form-data';
+      form.target = iframeName;
       form.style.display = 'none';
 
       const fields = {
@@ -51,8 +109,7 @@ export function useExport() {
       };
 
       for (const [key, value] of Object.entries(fields)) {
-        const input = document.createElement('input');
-        input.type = 'hidden';
+        const input = document.createElement('textarea');
         input.name = key;
         input.value = value;
         form.appendChild(input);
@@ -61,8 +118,8 @@ export function useExport() {
       document.body.appendChild(form);
       form.submit();
       
-      // Cleanup
-      setTimeout(() => document.body.removeChild(form), 100);
+      // Cleanup the form element after submit (leave the overlay/iframe open)
+      setTimeout(() => document.body.removeChild(form), 1000);
       
       return true;
     } catch (e: any) {
