@@ -1,4 +1,6 @@
 @import "tailwindcss";
+@source "../components";
+@source "../app";
 @import "katex/dist/katex.min.css";
 
 @theme {

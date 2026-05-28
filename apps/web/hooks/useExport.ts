@@ -139,6 +139,14 @@ export function useExport() {
       iframe.style.transition = 'opacity 0.3s ease';
       
       iframe.onload = () => {
+        try {
+          const href = iframe.contentWindow?.location?.href;
+          if (!href || href === 'about:blank' || href === '') {
+            return; // Ignore initial blank load
+          }
+        } catch (e) {
+          // SecurityError means it successfully navigated to the cross-origin texlive.net!
+        }
         loaderContainer.style.display = 'none';
         iframe.style.opacity = '1';
       };
