@@ -9,13 +9,13 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: 'md-latex — Markdown to LaTeX Editor',
+  title: 'md-latex - Markdown to LaTeX Editor',
   description:
     'Real-time Markdown to LaTeX transpiler with live preview. Write what you know, output what you need. Built for researchers, students, and academics.',
   keywords: ['markdown', 'latex', 'converter', 'transpiler', 'academic writing', 'research'],
   authors: [{ name: 'md-latex' }],
   openGraph: {
-    title: 'md-latex — Markdown to LaTeX Editor',
+    title: 'md-latex - Markdown to LaTeX Editor',
     description: 'Real-time Markdown to LaTeX transpiler with live preview.',
     type: 'website',
   },
