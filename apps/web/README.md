@@ -9,7 +9,6 @@ Since this application is part of a Turborepo, it's best to run commands from th
 - **Install dependencies:** `pnpm install`
 - **Development server:** `pnpm --filter web dev`
 - **Build production bundle:** `pnpm --filter web build`
-- **Run tests:** `pnpm --filter web test`
 
 You can also navigate to `apps/web` and use local `npm run dev` if preferred.
 

@@ -4,7 +4,7 @@ import { useEffect, useRef, useCallback } from 'react';
 import { EditorView, basicSetup } from 'codemirror';
 import { EditorState } from '@codemirror/state';
 import { markdown } from '@codemirror/lang-markdown';
-import { oneDark } from '@codemirror/theme-one-dark';
+
 import { EditorView as EditorViewCore } from '@codemirror/view';
 import { useEditorStore } from '@/store/editorStore';
 

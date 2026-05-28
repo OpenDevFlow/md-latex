@@ -16,7 +16,9 @@ function getTranspiler() {
 
 // Custom rehype plugin to inject data-source-line attributes
 function rehypeSourceLinePlugin() {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return (tree: any) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const visit = (node: any) => {
       if (node.type === 'element' && node.position?.start?.line) {
         node.properties = node.properties || {};
@@ -39,8 +41,15 @@ function escapeHtml(str: string): string {
     .replace(/'/g, '&#39;');
 }
 
+interface Frontmatter {
+  title?: string;
+  author?: string | string[];
+  date?: string;
+  abstract?: string;
+}
+
 // Preview renderer using remark → rehype → KaTeX
-async function renderPreview(markdown: string, frontmatter: any): Promise<string> {
+async function renderPreview(markdown: string, frontmatter: Frontmatter): Promise<string> {
   const [
     { unified },
     { default: remarkParse },
@@ -82,9 +91,9 @@ async function renderPreview(markdown: string, frontmatter: any): Promise<string
     let escapedAuthor = '';
     if (frontmatter.author) {
       if (Array.isArray(frontmatter.author)) {
-        escapedAuthor = frontmatter.author.map((a: any) => escapeHtml(a)).join(', ');
+        escapedAuthor = frontmatter.author.map((a: unknown) => escapeHtml(String(a))).join(', ');
       } else {
-        escapedAuthor = escapeHtml(frontmatter.author);
+        escapedAuthor = escapeHtml(String(frontmatter.author));
       }
     }
     const authorHtml = escapedAuthor ? `<p class="author">${escapedAuthor}</p>` : '';
@@ -144,6 +153,8 @@ export function useTranspiler() {
         setLatex(result.latex);
         if (result.sourceMap) {
           setLatexSourceMap(result.sourceMap);
+        } else {
+          setLatexSourceMap({});
         }
 
         // Render preview in parallel

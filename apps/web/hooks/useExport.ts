@@ -147,7 +147,7 @@ export function useExport() {
             if (!href || href === 'about:blank' || href === '') {
               return; // Ignore initial blank load
             }
-          } catch (e) {
+          } catch (_e) {
             // SecurityError means it successfully navigated to the cross-origin texlive.net!
           }
           clearTimeout(timer);
@@ -206,7 +206,7 @@ export function useExport() {
       setTimeout(() => document.body.removeChild(form), 1000);
       
       return await resultPromise;
-    } catch (e: any) {
+    } catch (e) {
       console.error(e);
       throw new Error('Failed to export PDF');
     }
