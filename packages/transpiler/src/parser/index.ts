@@ -4,7 +4,7 @@ import remarkFrontmatter from 'remark-frontmatter';
 import remarkMath from 'remark-math';
 import remarkGfm from 'remark-gfm';
 import type { Root } from 'mdast';
-import type { TranspilerPlugin } from '../types';
+import type { TranspilerPlugin } from '../types.js';
 import { remarkCitation } from './extensions/citation';
 
 /**

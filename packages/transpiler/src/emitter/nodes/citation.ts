@@ -1,4 +1,4 @@
-import type { NodeEmitter, CitationNode } from '../types';
+import type { NodeEmitter, CitationNode } from '../../types.js';
 
 /**
  * Citation node emitter: [@key] → \cite{key}

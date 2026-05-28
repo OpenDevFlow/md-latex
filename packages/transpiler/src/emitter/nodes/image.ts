@@ -1,5 +1,5 @@
 import type { Image } from 'mdast';
-import type { NodeEmitter } from '../types';
+import type { NodeEmitter } from '../../types.js';
 
 export const imageEmitter: NodeEmitter = (node: Image) => {
   const url = node.url;

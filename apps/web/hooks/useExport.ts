@@ -40,7 +40,14 @@ export function useExport() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ latex }),
       });
-      if (!res.ok) throw new Error('PDF compilation failed');
+      if (!res.ok) {
+        let msg = 'PDF compilation failed';
+        try {
+          const data = await res.json();
+          if (data.details) msg += ':\n\n' + data.details.substring(0, 300) + '...';
+        } catch {}
+        throw new Error(msg);
+      }
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -49,9 +56,9 @@ export function useExport() {
       a.click();
       URL.revokeObjectURL(url);
       return true;
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
-      alert('Failed to export PDF. Ensure your LaTeX code has no errors.');
+      alert(e.message || 'Failed to export PDF. Ensure your LaTeX code has no errors.');
       return false;
     }
   }

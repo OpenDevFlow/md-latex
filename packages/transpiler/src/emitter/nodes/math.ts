@@ -1,4 +1,4 @@
-import type { NodeEmitter, InlineMathNode, MathNode } from '../types';
+import type { NodeEmitter, InlineMathNode, MathNode } from '../../types.js';
 
 /**
  * Inline math emitter: $...$ passthrough

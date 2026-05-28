@@ -1,4 +1,4 @@
-import type { NodeEmitter } from '../types';
+import type { NodeEmitter } from '../../types.js';
 
 /**
  * HTML node emitter — strips HTML comments, passes through raw HTML

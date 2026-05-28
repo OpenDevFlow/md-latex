@@ -1,5 +1,5 @@
 import type { InlineCode } from 'mdast';
-import type { NodeEmitter } from '../types';
+import type { NodeEmitter } from '../../types.js';
 
 /** Escapes characters that are special inside \texttt{} */
 function escapeTexttt(value: string): string {

@@ -1,5 +1,5 @@
 import type { Link } from 'mdast';
-import type { NodeEmitter } from '../types';
+import type { NodeEmitter } from '../../types.js';
 
 export const linkEmitter: NodeEmitter = (node: Link, ctx) => {
   const text = ctx.emit(node.children);

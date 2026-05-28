@@ -1,4 +1,4 @@
-import type { TranspilerPlugin } from '../types';
+import type { TranspilerPlugin } from '../types.js';
 
 /**
  * Plugin registry — validates and stores plugins.
