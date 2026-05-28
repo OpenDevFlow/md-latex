@@ -105,6 +105,8 @@ const DEFAULT_OPTIONS: Required<TranspilerOptions> = {
   plugins: [],
   wrapDocument: true,
   codeRenderer: 'lstlisting',
+  citationStyle: 'apa',
+  bibliographyContent: null,
 };
 
 // ──────────────────────────────────────────────────────────

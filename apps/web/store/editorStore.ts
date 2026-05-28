@@ -5,12 +5,15 @@ import { persist } from 'zustand/middleware';
 // Types
 // ──────────────────────────────────────────────────────────
 
-export interface Document {
+export interface FileSystemItem {
   id: string;
   title: string;
   content: string;
   createdAt: number;
   updatedAt: number;
+  type?: 'file' | 'folder' | 'bib';
+  parentId?: string | null;
+  isOpen?: boolean;
 }
 
 export type LayoutMode = '2-pane' | '3-pane';
@@ -23,6 +26,8 @@ export interface TranspilerOptions {
   template: 'article' | 'base';
   wrapDocument: boolean;
   codeRenderer: 'lstlisting' | 'minted';
+  citationStyle?: string;
+  bibliographyId?: string | null;
 }
 
 // ──────────────────────────────────────────────────────────
@@ -103,7 +108,7 @@ interface EditorState {
   showSidebar: boolean;
 
   // Document management
-  documents: Document[];
+  documents: FileSystemItem[];
   currentDocId: string | null;
 
   // Actions
@@ -118,10 +123,12 @@ interface EditorState {
 
   // Document actions
   saveDocument: (title?: string) => void;
-  loadDocument: (doc: Document) => void;
+  loadDocument: (doc: FileSystemItem) => void;
   deleteDocument: (id: string) => void;
-  newDocument: () => void;
-  setDocuments: (docs: Document[]) => void;
+  newDocument: (parentId?: string | null) => void;
+  newFolder: (parentId?: string | null) => void;
+  toggleFolder: (id: string) => void;
+  setDocuments: (docs: FileSystemItem[]) => void;
 }
 
 const DEFAULT_TRANSPILER_OPTIONS: TranspilerOptions = {
@@ -130,6 +137,8 @@ const DEFAULT_TRANSPILER_OPTIONS: TranspilerOptions = {
   template: 'article',
   wrapDocument: true,
   codeRenderer: 'lstlisting',
+  citationStyle: 'apa',
+  bibliographyId: null,
 };
 
 export const useEditorStore = create<EditorState>()(
@@ -177,12 +186,13 @@ export const useEditorStore = create<EditorState>()(
           });
         } else {
           // Create new
-          const newDoc: Document = {
+          const newDoc: FileSystemItem = {
             id: crypto.randomUUID(),
             title: docTitle,
             content,
             createdAt: now,
             updatedAt: now,
+            type: 'file',
           };
           set({
             documents: [newDoc, ...documents],
@@ -192,18 +202,32 @@ export const useEditorStore = create<EditorState>()(
       },
 
       loadDocument: (doc) => {
+        if (doc.type === 'folder') return;
         set({ content: doc.content, currentDocId: doc.id });
       },
 
       deleteDocument: (id) => {
         const { documents, currentDocId } = get();
+        // Also delete children if it's a folder
+        const toDelete = new Set([id]);
+        let changed = true;
+        while (changed) {
+          changed = false;
+          for (const d of documents) {
+            if (d.parentId && toDelete.has(d.parentId) && !toDelete.has(d.id)) {
+              toDelete.add(d.id);
+              changed = true;
+            }
+          }
+        }
+        
         set({
-          documents: documents.filter((d) => d.id !== id),
-          currentDocId: currentDocId === id ? null : currentDocId,
+          documents: documents.filter((d) => !toDelete.has(d.id)),
+          currentDocId: toDelete.has(currentDocId!) ? null : currentDocId,
         });
       },
 
-      newDocument: () => {
+      newDocument: (parentId = null) => {
         const BLANK_CONTENT = `---
 title: New Document
 author: 
@@ -213,7 +237,49 @@ date: \\today
 # Introduction
 
 Start writing your markdown here...`;
-        set({ content: BLANK_CONTENT, currentDocId: null });
+        
+        // Wait, normally we just set content and currentDocId to null. 
+        // But if we want it to be in a folder, we need to create it immediately.
+        // For simplicity, let's just clear currentDocId so saveDocument will create a new file in root later.
+        // Or if parentId is provided, we create it now.
+        if (parentId) {
+           const newDoc: FileSystemItem = {
+             id: crypto.randomUUID(),
+             title: 'Untitled Document',
+             content: BLANK_CONTENT,
+             createdAt: Date.now(),
+             updatedAt: Date.now(),
+             type: 'file',
+             parentId,
+           };
+           const store = get();
+           set({ documents: [newDoc, ...store.documents], content: BLANK_CONTENT, currentDocId: newDoc.id });
+        } else {
+           set({ content: BLANK_CONTENT, currentDocId: null });
+        }
+      },
+      
+      newFolder: (parentId = null) => {
+        const newFolder: FileSystemItem = {
+          id: crypto.randomUUID(),
+          title: 'New Folder',
+          content: '',
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
+          type: 'folder',
+          parentId,
+          isOpen: true,
+        };
+        const store = get();
+        set({ documents: [newFolder, ...store.documents] });
+      },
+      
+      toggleFolder: (id) => {
+        set({
+          documents: get().documents.map((d) => 
+            d.id === id ? { ...d, isOpen: !d.isOpen } : d
+          )
+        });
       },
 
       setDocuments: (docs) => set({ documents: docs }),

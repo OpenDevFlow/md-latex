@@ -18,6 +18,69 @@ function getHeadings(content: string) {
   return headings;
 }
 
+function FileTree({ level, parentId }: { level: number, parentId: string | null }) {
+  const documents = useEditorStore((s) => s.documents);
+  const currentDocId = useEditorStore((s) => s.currentDocId);
+  const loadDocument = useEditorStore((s) => s.loadDocument);
+  const deleteDocument = useEditorStore((s) => s.deleteDocument);
+  const toggleFolder = useEditorStore((s) => s.toggleFolder);
+  
+  const items = documents.filter(d => (d.parentId || null) === parentId);
+  
+  if (items.length === 0) return null;
+  
+  return (
+    <>
+      {items.map((doc) => {
+        const isFolder = doc.type === 'folder';
+        const paddingLeft = `${level * 12 + 8}px`;
+        
+        return (
+          <div key={doc.id}>
+            <div
+              className={`file-item group ${currentDocId === doc.id ? 'active' : ''}`}
+              style={{ paddingLeft }}
+              onClick={() => isFolder ? toggleFolder(doc.id) : loadDocument(doc)}
+            >
+              {isFolder ? (
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="flex-shrink-0">
+                  {doc.isOpen ? (
+                    <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+                  ) : (
+                    <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+                  )}
+                </svg>
+              ) : (
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="flex-shrink-0">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
+                </svg>
+              )}
+              
+              <span className="truncate flex-1">{doc.title || 'Untitled'}</span>
+              <button 
+                className="opacity-0 group-hover:opacity-100 p-1 hover:bg-danger/20 text-danger rounded transition-all"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  deleteDocument(doc.id);
+                }}
+                title={isFolder ? "Delete folder" : "Delete file"}
+              >
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/>
+                </svg>
+              </button>
+            </div>
+            
+            {isFolder && doc.isOpen && (
+              <FileTree level={level + 1} parentId={doc.id} />
+            )}
+          </div>
+        );
+      })}
+    </>
+  );
+}
+
 export function Sidebar() {
   const showSidebar = useEditorStore((s) => s.showSidebar);
   const toggleSidebar = useEditorStore((s) => s.toggleSidebar);
@@ -25,6 +88,7 @@ export function Sidebar() {
   const currentDocId = useEditorStore((s) => s.currentDocId);
   const loadDocument = useEditorStore((s) => s.loadDocument);
   const newDocument = useEditorStore((s) => s.newDocument);
+  const newFolder = useEditorStore((s) => s.newFolder);
   const deleteDocument = useEditorStore((s) => s.deleteDocument);
   const content = useEditorStore((s) => s.content);
 
@@ -83,7 +147,7 @@ export function Sidebar() {
             onClick={() => setTreeExpanded(!treeExpanded)}
           >
             <svg
-              className={`transition-transform \${treeExpanded ? '' : '-rotate-90'}`}
+              className={`transition-transform ${treeExpanded ? '' : '-rotate-90'}`}
               width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
             >
               <polyline points="6 9 12 15 18 9" />
@@ -91,9 +155,14 @@ export function Sidebar() {
             <span className="font-semibold text-sm">File tree</span>
           </button>
           <div className="sidebar-actions flex items-center gap-3 text-text-muted">
-            <button title="New File" onClick={newDocument} className="hover:text-text transition-colors">
+            <button title="New File" onClick={() => newDocument()} className="hover:text-text transition-colors">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/>
+              </svg>
+            </button>
+            <button title="New Folder" onClick={() => newFolder()} className="hover:text-text transition-colors">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/><line x1="12" y1="11" x2="12" y2="17"/><line x1="9" y1="14" x2="15" y2="14"/>
               </svg>
             </button>
             <input 
@@ -121,30 +190,7 @@ export function Sidebar() {
             {documents.length === 0 ? (
               <div className="text-xs text-text-faint italic px-2">No documents saved.</div>
             ) : (
-              documents.map((doc) => (
-                <div
-                  key={doc.id}
-                  className={`file-item group \${currentDocId === doc.id ? 'active' : ''}`}
-                  onClick={() => loadDocument(doc)}
-                >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="flex-shrink-0">
-                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
-                  </svg>
-                  <span className="truncate flex-1">{doc.title || 'Untitled.tex'}</span>
-                  <button 
-                    className="opacity-0 group-hover:opacity-100 p-1 hover:bg-danger/20 text-danger rounded transition-all"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      deleteDocument(doc.id);
-                    }}
-                    title="Delete file"
-                  >
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/>
-                    </svg>
-                  </button>
-                </div>
-              ))
+              <FileTree level={0} parentId={null} />
             )}
           </div>
         )}
@@ -160,7 +206,7 @@ export function Sidebar() {
             onClick={() => setOutlineExpanded(!outlineExpanded)}
           >
             <svg
-              className={`transition-transform \${outlineExpanded ? '' : '-rotate-90'}`}
+              className={`transition-transform ${outlineExpanded ? '' : '-rotate-90'}`}
               width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
             >
               <polyline points="6 9 12 15 18 9" />
@@ -190,7 +236,7 @@ export function Sidebar() {
                       </div>
                     )}
                     {!isTopLevel && (
-                      <div className={`outline-item \${indentClass} truncate hover:bg-surface-3 py-1 px-2 rounded cursor-pointer transition-colors text-sm`}>
+                      <div className={`outline-item ${indentClass} truncate hover:bg-surface-3 py-1 px-2 rounded cursor-pointer transition-colors text-sm`}>
                         {heading.text}
                       </div>
                     )}
