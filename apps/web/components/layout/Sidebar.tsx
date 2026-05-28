@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect, useRef } from 'react';
 import { useEditorStore } from '@/store/editorStore';
 
 function getHeadings(content: string) {
@@ -44,6 +44,34 @@ export function Sidebar() {
 
   if (!showSidebar || isMobile) return null;
 
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const fileContent = event.target?.result as string;
+      const store = useEditorStore.getState();
+      
+      const newDocId = crypto.randomUUID();
+      const now = Date.now();
+      const newDoc = {
+        id: newDocId,
+        title: file.name.replace(/\.[^/.]+$/, ""),
+        content: fileContent,
+        createdAt: now,
+        updatedAt: now,
+      };
+      
+      store.setDocuments([newDoc, ...store.documents]);
+      store.loadDocument(newDoc);
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  };
+
   return (
     <div className="sidebar" aria-label="Sidebar">
       {/* File Tree Section */}
@@ -67,12 +95,14 @@ export function Sidebar() {
                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/>
               </svg>
             </button>
-            <button title="New Folder" className="hover:text-text transition-colors">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/><line x1="12" y1="11" x2="12" y2="17"/><line x1="9" y1="14" x2="15" y2="14"/>
-              </svg>
-            </button>
-            <button title="Upload" className="hover:text-text transition-colors">
+            <input 
+              type="file" 
+              ref={fileInputRef} 
+              style={{ display: 'none' }} 
+              accept=".md,.txt,.tex" 
+              onChange={handleFileUpload} 
+            />
+            <button title="Upload File" onClick={() => fileInputRef.current?.click()} className="hover:text-text transition-colors">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
               </svg>
