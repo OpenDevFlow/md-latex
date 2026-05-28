@@ -600,7 +600,7 @@ body {
   border-radius: 2px;
   color: #333;
 }
-html.dark .preview-content code {
+[data-theme="dark"] .preview-content code {
   background: #1e1e1e;
   color: #d4d4d4;
 }
@@ -613,10 +613,12 @@ html.dark .preview-content code {
   overflow-x: auto;
   margin: 1.5em 0;
   box-shadow: 2px 2px 5px rgba(0,0,0,0.02);
+  color: #333;
 }
-html.dark .preview-content pre {
+[data-theme="dark"] .preview-content pre {
   background: #1e1e1e;
   border-color: #333;
+  color: #d4d4d4;
 }
 .preview-content pre code {
   background: none;
