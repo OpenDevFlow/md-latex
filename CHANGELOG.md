@@ -2,20 +2,23 @@
 
 All notable changes to this project will be documented in this file.
 
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
 ## [Unreleased]
 
 ### Added
-- **3-Pane Scroll Synchronization:** Added intelligent scroll-sync across Markdown, LaTeX, and HTML Preview panes. The transpiler now builds a source map linking AST nodes to LaTeX line numbers, while custom Rehype plugins tag HTML elements with data attributes.
-- **texlive.net PDF Export:** Implemented a robust `texlive.net` integration via an invisible iframe `POST` method to bypass CORS restrictions, enabling 1-click PDF downloads.
-- **Bibliography Manager:** Added full support for uploading/pasting `.bib` files. The transpiler automatically bundles these references via `filecontents` and injects `\printbibliography` into the output LaTeX.
-- **Glassmorphism UI:** Completely redesigned the settings modal and export dropdown using Tailwind CSS v4, adding smooth micro-animations, blur effects, and custom SVG icons.
-- **Zustand Persistence:** File system structures, documents, and user preferences are now fully persisted to `localStorage`.
+- Implemented 3-pane scroll synchronization across Markdown, LaTeX, and HTML Preview using AST source mapping.
+- Integrated `texlive.net` PDF export via an iframe POST method to bypass CORS restrictions.
+- Added bibliography management for uploading and parsing `.bib` files using `filecontents`.
+- Redesigned the settings modal and export dropdown with a glassmorphism UI and micro-animations.
+- Persisted file system structures, documents, and user preferences to `localStorage` via Zustand.
 
 ### Changed
-- **Turborepo Migration:** Converted the architecture to a pnpm workspace with Turborepo for faster build caching.
-- **Tailwind v4 Upgrade:** Migrated from Tailwind v3 to v4, removing outdated config files and relying on the new CSS-first `@import "tailwindcss"` engine.
-- **CodeMirror Enhancements:** Updated CodeMirror configurations to smoothly handle dynamic layouts (2-pane vs 3-pane) and apply Next.js theme variables dynamically.
+- Migrated the architecture to a pnpm workspace utilizing Turborepo for faster builds.
+- Upgraded styling engine from Tailwind v3 to Tailwind v4.
+- Updated CodeMirror configurations to smoothly handle dynamic pane layouts and theme toggling.
 
 ### Fixed
-- **Turbopack CSS Caching:** Resolved a severe bug where Next.js 15 Turbopack would not hot-reload dynamically added Tailwind utility classes on new components (fixed by converting critical layout padding to inline React styles).
-- **macOS Typography:** Unified the base typography to standard `Inter` fonts for maximum legibility on Retina displays.
+- Fixed Turbopack CSS caching issues on Next.js 15 by converting critical layout padding to inline styles.
+- Standardized typography across the application to utilize the `Inter` font family.
