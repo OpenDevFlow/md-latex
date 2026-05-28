@@ -116,6 +116,7 @@ const DEFAULT_OPTIONS: Required<TranspilerOptions> = {
 export interface EmitResult {
   latex: string;
   warnings: TranspileWarning[];
+  sourceMap: Array<{ sourceLine: number; texLine: number }>;
 }
 
 export function emitLatex(
@@ -131,6 +132,7 @@ export function emitLatex(
 
   const frontmatter: FrontmatterData = root.frontmatter ?? {};
   const warnings: TranspileWarning[] = [];
+  const sourceMap: Array<{ sourceLine: number; texLine: number }> = [];
 
   // Merge plugin emitters on top of defaults
   const emitters = { ...DEFAULT_EMITTERS };
@@ -149,6 +151,8 @@ export function emitLatex(
     options,
     headingDepth: 0,
     frontmatter,
+    sourceMap: [],
+    currentTexLine: 0,
 
     emitNode(node: Node): string {
       const emitter = emitters[node.type];
@@ -159,7 +163,18 @@ export function emitLatex(
         });
         return '';
       }
-      return emitter(node, ctx);
+      
+      let result = emitter(node, ctx);
+
+      // Inject source line marker for block-level nodes
+      if (
+        node.position?.start?.line && 
+        ['paragraph', 'heading', 'list', 'code', 'blockquote', 'math', 'table'].includes(node.type)
+      ) {
+        result = `\n% source-line: ${node.position.start.line}\n${result}`;
+      }
+      
+      return result;
     },
 
     emit(nodes: Node[]): string {
@@ -171,14 +186,30 @@ export function emitLatex(
   const body = ctx.emit(root.children);
 
   // Choose template
-  let latex: string;
+  let rawLatex: string;
   if (!options.wrapDocument) {
-    latex = baseTemplate(body, frontmatter, options);
+    rawLatex = baseTemplate(body, frontmatter, options);
   } else if (options.template === 'base') {
-    latex = baseTemplate(body, frontmatter, options);
+    rawLatex = baseTemplate(body, frontmatter, options);
   } else {
-    latex = articleTemplate(body, frontmatter, options);
+    rawLatex = articleTemplate(body, frontmatter, options);
   }
 
-  return { latex, warnings };
+  // Post-process to extract source map and remove markers
+  const lines = rawLatex.split('\n');
+  const finalLines: string[] = [];
+  let currentOutputLine = 1;
+
+  for (const line of lines) {
+    const match = line.match(/^%\s*source-line:\s*(\d+)$/);
+    if (match) {
+      const sourceLine = parseInt(match[1], 10);
+      sourceMap.push({ sourceLine, texLine: currentOutputLine });
+    } else {
+      finalLines.push(line);
+      currentOutputLine++;
+    }
+  }
+
+  return { latex: finalLines.join('\n'), warnings, sourceMap };
 }

@@ -63,6 +63,10 @@ export interface EmitterContext {
   headingDepth: number;
   /** Extracted frontmatter metadata */
   frontmatter: FrontmatterData;
+  /** Source map generated during transpilation */
+  sourceMap: Array<{ sourceLine: number; texLine: number }>;
+  /** Current LaTeX output line counter */
+  currentTexLine: number;
 }
 
 // ──────────────────────────────────────────────────────────
@@ -90,6 +94,8 @@ export interface TranspileResult {
   frontmatter: FrontmatterData;
   /** Warnings generated during transpilation */
   warnings: TranspileWarning[];
+  /** Source map linking Markdown line to LaTeX line */
+  sourceMap: Array<{ sourceLine: number; texLine: number }>;
 }
 
 export interface TranspileWarning {

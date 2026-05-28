@@ -103,6 +103,36 @@ export function LaTeXPane({ className = '' }: LaTeXPaneProps) {
     }
   }, [latex]);
 
+  const activeLine = useEditorStore((s) => s.activeLine);
+  const latexSourceMap = useEditorStore((s) => s.latexSourceMap);
+
+  // Sync scroll
+  useEffect(() => {
+    const view = editorRef.current;
+    if (!view || !activeLine || latexSourceMap.length === 0) return;
+
+    let targetTexLine = -1;
+    let closestSourceLine = -1;
+    
+    for (const mapping of latexSourceMap) {
+      if (mapping.sourceLine <= activeLine && mapping.sourceLine > closestSourceLine) {
+        closestSourceLine = mapping.sourceLine;
+        targetTexLine = mapping.texLine;
+      }
+    }
+
+    if (targetTexLine !== -1) {
+      const doc = view.state.doc;
+      if (targetTexLine <= doc.lines) {
+        const lineInfo = doc.line(targetTexLine);
+        view.dispatch({
+          selection: { anchor: lineInfo.from, head: lineInfo.from },
+          effects: EditorViewCore.scrollIntoView(lineInfo.from, { y: 'center' })
+        });
+      }
+    }
+  }, [activeLine, latexSourceMap]);
+
   async function handleCopy() {
     const ok = await copyLatex();
     if (ok) {

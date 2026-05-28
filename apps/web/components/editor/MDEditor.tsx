@@ -73,14 +73,20 @@ export function MDEditor({ className = '' }: MDEditorProps) {
   const content = useEditorStore((s) => s.content);
   const setContent = useEditorStore((s) => s.setContent);
   const theme = useEditorStore((s) => s.theme);
+  const setActiveLine = useEditorStore((s) => s.setActiveLine);
 
   const onUpdate = useCallback(
     (update: import('@codemirror/view').ViewUpdate) => {
       if (update.docChanged) {
         setContent(update.state.doc.toString());
       }
+      if (update.selectionSet || update.docChanged) {
+        const pos = update.state.selection.main.head;
+        const line = update.state.doc.lineAt(pos).number;
+        setActiveLine(line);
+      }
     },
-    [setContent],
+    [setContent, setActiveLine],
   );
 
   useEffect(() => {
