@@ -158,12 +158,11 @@ export function articleTemplate(
   // Title block
   const hasTitle  = !!frontmatter.title;
   const hasAuthor = !!frontmatter.author;
-  const hasDate   = true; // always emit \date
 
   const titleLines: string[] = [];
   if (hasTitle)  titleLines.push(`\\title{${escapeLatex(frontmatter.title as string)}}`);
   if (hasAuthor) titleLines.push(`\\author{${formatAuthors(frontmatter.author)}}`);
-  titleLines.push(`\\date{${formatDate(frontmatter.date)}}`);
+  titleLines.push(`\\date{${escapeLatex(formatDate(frontmatter.date))}}`);
 
   const maketitle = hasTitle
     ? `${titleLines.join('\n')}\n\n\\begin{document}\n\n\\maketitle\n`

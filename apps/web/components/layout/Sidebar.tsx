@@ -163,13 +163,9 @@ export function Sidebar() {
   const showSidebar = useEditorStore((s) => s.showSidebar);
   const toggleSidebar = useEditorStore((s) => s.toggleSidebar);
   const documents = useEditorStore((s) => s.documents);
-  const currentDocId = useEditorStore((s) => s.currentDocId);
-  const loadDocument = useEditorStore((s) => s.loadDocument);
   const newDocument = useEditorStore((s) => s.newDocument);
   const newFolder = useEditorStore((s) => s.newFolder);
-  const deleteDocument = useEditorStore((s) => s.deleteDocument);
   const moveItem = useEditorStore((s) => s.moveItem);
-  const renameItem = useEditorStore((s) => s.renameItem);
   const content = useEditorStore((s) => s.content);
 
   const [treeExpanded, setTreeExpanded] = useState(true);

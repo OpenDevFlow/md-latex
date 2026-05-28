@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useEditorStore } from '@/store/editorStore';
 import { useExport } from '@/hooks/useExport';
 import { SettingsModal } from '@/components/editor/SettingsModal';
-import type { LayoutMode } from '@/store/editorStore';
+
 
 export function Toolbar() {
   const theme = useEditorStore((s) => s.theme);
@@ -16,7 +16,7 @@ export function Toolbar() {
   const newDocument = useEditorStore((s) => s.newDocument);
   const currentDocId = useEditorStore((s) => s.currentDocId);
   const toggleSidebar = useEditorStore((s) => s.toggleSidebar);
-  const { copyLatex, downloadLatex, downloadMarkdown, exportPDF } = useExport();
+  const { copyLatex, downloadLatex, exportPDF } = useExport();
 
   const [showExportMenu, setShowExportMenu] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
@@ -26,6 +26,7 @@ export function Toolbar() {
   const currentDoc = documents.find((d) => d.id === currentDocId);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setDocTitle(currentDoc?.title ?? '');
     setCopied(false);
   }, [currentDocId, currentDoc?.title]);
