@@ -49,10 +49,8 @@ export function Toolbar() {
           </svg>
         </button>
 
-        <div className="logo ml-1" aria-label="md-latex">
-          <span className="logo-md">md</span>
-          <span className="logo-arrow">→</span>
-          <span className="logo-tex">LaTeX</span>
+        <div className="logo ml-1 flex items-center gap-2" aria-label="md-latex">
+          <img src="/logo.png" alt="Logo" className="w-6 h-6 rounded-md object-cover shadow-sm" />
         </div>
 
         {/* Document title */}
