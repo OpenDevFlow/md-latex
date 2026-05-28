@@ -30,4 +30,4 @@ jobs:
 
     - name: Check formatting and lint rules
       # This runs ESLint across the turborepo if a `lint` script exists
-      run: pnpm run lint --if-present
+      run: pnpm run lint
