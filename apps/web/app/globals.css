@@ -399,6 +399,19 @@ body {
   overflow: hidden;
   animation: dropIn 0.12s ease;
 }
+
+/* ═══════════════════════════════════════════════════════════
+   SCROLL SYNC HIGHLIGHTING
+   ═══════════════════════════════════════════════════════════ */
+@keyframes highlight-flash {
+  0% { background-color: var(--color-accent-glow); outline: 2px solid var(--color-accent); border-radius: 4px; }
+  100% { background-color: transparent; outline: 2px solid transparent; border-radius: 4px; }
+}
+
+.highlight-flash {
+  animation: highlight-flash 1s ease-out forwards;
+}
+
 @keyframes dropIn {
   from { opacity: 0; transform: translateY(-4px) scale(0.97); }
   to   { opacity: 1; transform: translateY(0) scale(1); }

@@ -134,6 +134,12 @@ interface EditorState {
   renameItem: (id: string, newTitle: string) => void;
   moveItem: (itemId: string, newParentId: string | null) => void;
   setDocuments: (docs: FileSystemItem[]) => void;
+
+  // Scroll Sync
+  activeLine: number | null;
+  latexSourceMap: Array<{ sourceLine: number; texLine: number }>;
+  setActiveLine: (line: number | null) => void;
+  setLatexSourceMap: (map: Array<{ sourceLine: number; texLine: number }>) => void;
 }
 
 const DEFAULT_TRANSPILER_OPTIONS: TranspilerOptions = {
@@ -153,6 +159,8 @@ export const useEditorStore = create<EditorState>()(
       content: DEFAULT_CONTENT,
       latex: '',
       preview: '',
+      activeLine: null,
+      latexSourceMap: [],
       transpilerOptions: { ...DEFAULT_TRANSPILER_OPTIONS, bibliographyId: 'default-bib-id' },
       layout: '3-pane',
       activePane: 'md',
@@ -182,6 +190,8 @@ export const useEditorStore = create<EditorState>()(
       setContent: (content) => set({ content }),
       setLatex: (latex) => set({ latex }),
       setPreview: (preview) => set({ preview }),
+      setActiveLine: (activeLine) => set({ activeLine }),
+      setLatexSourceMap: (latexSourceMap) => set({ latexSourceMap }),
       setLayout: (layout) => set({ layout }),
       setActivePane: (activePane) => set({ activePane }),
       setTheme: (theme) => set({ theme }),

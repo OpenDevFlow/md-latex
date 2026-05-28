@@ -51,9 +51,9 @@ export async function transpile(
   root.frontmatter = frontmatter;
 
   // 3. Emit LaTeX
-  const { latex, warnings } = emitLatex(root, options, plugins);
+  const { latex, warnings, sourceMap } = emitLatex(root, options, plugins);
 
-  return { latex, frontmatter, warnings };
+  return { latex, frontmatter, warnings, sourceMap };
 }
 
 // Re-export types for convenience

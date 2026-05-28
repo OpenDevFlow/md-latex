@@ -14,6 +14,22 @@ function getTranspiler() {
   return transpilePromise;
 }
 
+// Custom rehype plugin to inject data-source-line attributes
+function rehypeSourceLinePlugin() {
+  return (tree: any) => {
+    const visit = (node: any) => {
+      if (node.type === 'element' && node.position?.start?.line) {
+        node.properties = node.properties || {};
+        node.properties['data-source-line'] = node.position.start.line;
+      }
+      if (node.children && Array.isArray(node.children)) {
+        node.children.forEach(visit);
+      }
+    };
+    visit(tree);
+  };
+}
+
 // Preview renderer using remark → rehype → KaTeX
 async function renderPreview(markdown: string, frontmatter: any): Promise<string> {
   const [
@@ -42,6 +58,7 @@ async function renderPreview(markdown: string, frontmatter: any): Promise<string
     .use(remarkGfm)
     .use(remarkMath)
     .use(remarkRehype)
+    .use(rehypeSourceLinePlugin)
     .use(rehypeKatex)
     .use(rehypeStringify)
     .process(markdown);
@@ -75,6 +92,7 @@ export function useTranspiler() {
   const transpilerOptions = useEditorStore((s) => s.transpilerOptions);
   const setLatex = useEditorStore((s) => s.setLatex);
   const setPreview = useEditorStore((s) => s.setPreview);
+  const setLatexSourceMap = useEditorStore((s) => s.setLatexSourceMap);
 
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const abortRef = useRef(false);
@@ -101,6 +119,9 @@ export function useTranspiler() {
 
         if (abortRef.current) return;
         setLatex(result.latex);
+        if (result.sourceMap) {
+          setLatexSourceMap(result.sourceMap);
+        }
 
         // Render preview in parallel
         const html = await renderPreview(md, result.frontmatter);
@@ -110,7 +131,7 @@ export function useTranspiler() {
         console.error('[useTranspiler] transpile error:', err);
       }
     },
-    [setLatex, setPreview],
+    [setLatex, setPreview, setLatexSourceMap],
   );
 
   useEffect(() => {
