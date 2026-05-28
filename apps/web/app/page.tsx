@@ -60,7 +60,7 @@ function MobilePaneView() {
     <div className="mobile-pane-view">
       {activePane === 'md' && (
         <div className="pane pane-md mobile-pane">
-          <div className="pane-header flex items-center px-4 py-2 border-b border-border">
+          <div className="pane-header flex items-center border-b border-border" style={{ padding: '8px 16px' }}>
             <span className="pane-label">Markdown</span>
           </div>
           <div className="pane-body">

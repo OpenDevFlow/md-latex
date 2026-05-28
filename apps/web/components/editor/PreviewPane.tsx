@@ -14,7 +14,7 @@ export function PreviewPane({ className = '' }: PreviewPaneProps) {
   return (
     <div className={`preview-pane flex flex-col h-full ${className}`}>
       {/* Pane header */}
-      <div className="pane-header flex items-center px-4 py-2 border-b border-border flex-shrink-0">
+      <div className="pane-header flex items-center border-b border-border flex-shrink-0" style={{ padding: '8px 16px' }}>
         <span className="pane-label">Preview</span>
       </div>
 
