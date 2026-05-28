@@ -15,10 +15,11 @@ function getTranspiler() {
 }
 
 // Preview renderer using remark → rehype → KaTeX
-async function renderPreview(markdown: string): Promise<string> {
+async function renderPreview(markdown: string, frontmatter: any): Promise<string> {
   const [
     { unified },
     { default: remarkParse },
+    { default: remarkFrontmatter },
     { default: remarkRehype },
     { default: remarkGfm },
     { default: remarkMath },
@@ -27,6 +28,7 @@ async function renderPreview(markdown: string): Promise<string> {
   ] = await Promise.all([
     import('unified'),
     import('remark-parse'),
+    import('remark-frontmatter'),
     import('remark-rehype'),
     import('remark-gfm'),
     import('remark-math'),
@@ -36,6 +38,7 @@ async function renderPreview(markdown: string): Promise<string> {
 
   const file = await unified()
     .use(remarkParse)
+    .use(remarkFrontmatter, ['yaml'])
     .use(remarkGfm)
     .use(remarkMath)
     .use(remarkRehype)
@@ -43,7 +46,28 @@ async function renderPreview(markdown: string): Promise<string> {
     .use(rehypeStringify)
     .process(markdown);
 
-  return String(file);
+  let html = String(file);
+
+  // Prepend a title block that looks like the LaTeX \maketitle
+  if (frontmatter.title || frontmatter.author || frontmatter.date) {
+    const titleHtml = frontmatter.title ? `<h1>${frontmatter.title}</h1>` : '';
+    const authorHtml = frontmatter.author ? `<p class="author">${Array.isArray(frontmatter.author) ? frontmatter.author.join(', ') : frontmatter.author}</p>` : '';
+    
+    let dateStr = '';
+    if (frontmatter.date) {
+      if (frontmatter.date instanceof Date) {
+        dateStr = frontmatter.date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+      } else {
+        dateStr = frontmatter.date.replace('\\today', new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }));
+      }
+    }
+    const dateHtml = dateStr ? `<p class="date">${dateStr}</p>` : '';
+    const abstractHtml = frontmatter.abstract ? `<div class="abstract"><strong>Abstract</strong><br>${frontmatter.abstract}</div>` : '';
+
+    html = `<div class="maketitle">${titleHtml}${authorHtml}${dateHtml}</div>${abstractHtml}\n${html}`;
+  }
+
+  return html;
 }
 
 export function useTranspiler() {
@@ -72,7 +96,7 @@ export function useTranspiler() {
         setLatex(result.latex);
 
         // Render preview in parallel
-        const html = await renderPreview(md);
+        const html = await renderPreview(md, result.frontmatter);
         if (abortRef.current) return;
         setPreview(html);
       } catch (err) {

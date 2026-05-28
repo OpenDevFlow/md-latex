@@ -521,6 +521,39 @@ body {
 .preview-content h3 { font-size: 1.25em; }
 .preview-content h4 { font-size: 1.1em; }
 
+/* LaTeX \maketitle styling */
+.preview-content .maketitle {
+  text-align: center;
+  margin-bottom: 2em;
+}
+.preview-content .maketitle h1 {
+  font-size: 2em;
+  margin-top: 1em;
+  margin-bottom: 0.5em;
+  line-height: 1.2;
+}
+.preview-content .maketitle .author {
+  font-size: 1.15em;
+  margin-bottom: 0.2em;
+}
+.preview-content .maketitle .date {
+  font-size: 1em;
+  margin-bottom: 1em;
+}
+
+/* LaTeX Abstract styling */
+.preview-content .abstract {
+  width: 85%;
+  margin: 0 auto 2.5em auto;
+  font-size: 0.9em;
+  text-align: justify;
+}
+.preview-content .abstract strong {
+  display: block;
+  text-align: center;
+  margin-bottom: 0.5em;
+}
+
 .preview-content p    { margin-bottom: 1em; }
 .preview-content strong { color: var(--prose-heading); font-weight: 700; }
 .preview-content em   { font-style: italic; }
