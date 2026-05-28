@@ -5,7 +5,8 @@ import remarkMath from 'remark-math';
 import remarkGfm from 'remark-gfm';
 import type { Root } from 'mdast';
 import type { TranspilerPlugin } from '../types.js';
-import { remarkCitation } from './extensions/citation';
+import { remarkCitation } from './extensions/citation.js';
+import { remarkFrontmatterExtract } from './extensions/frontmatter.js';
 
 /**
  * Builds and returns a configured unified processor for parsing
@@ -13,15 +14,17 @@ import { remarkCitation } from './extensions/citation';
  *
  * Plugin order matters:
  *  1. remark-frontmatter  — fences YAML block so remark doesn't eat it
- *  2. remark-math         — fences $...$ and $$...$$ nodes
- *  3. remark-gfm          — tables, strikethrough, task lists, autolinks
- *  4. remarkCitation      — [@key] → citation nodes
- *  5. user plugins        — custom remark extensions from TranspilerPlugin[]
+ *  2. remarkFrontmatterExtract - extracts YAML string into mdast Root node properties
+ *  3. remark-math         — fences $...$ and $$...$$ nodes
+ *  4. remark-gfm          — tables, strikethrough, task lists, autolinks
+ *  5. remarkCitation      — [@key] → citation nodes
+ *  6. user plugins        — custom remark extensions from TranspilerPlugin[]
  */
 export function buildParser(plugins: TranspilerPlugin[] = []): Processor<Root> {
   const processor = unified()
     .use(remarkParse)
     .use(remarkFrontmatter, ['yaml'])
+    .use(remarkFrontmatterExtract)
     .use(remarkMath)
     .use(remarkGfm)
     .use(remarkCitation);

@@ -1,4 +1,5 @@
 import type { FrontmatterData, TranspilerOptions } from '../../types.js';
+import { escapeLatex } from '../index.js';
 
 // ──────────────────────────────────────────────────────────
 // Helpers
@@ -6,8 +7,8 @@ import type { FrontmatterData, TranspilerOptions } from '../../types.js';
 
 function formatAuthors(author: string | string[] | undefined): string {
   if (!author) return 'Author';
-  if (Array.isArray(author)) return author.join(' \\and\n       ');
-  return author;
+  if (Array.isArray(author)) return author.map(a => escapeLatex(a)).join(' \\and\n       ');
+  return escapeLatex(author);
 }
 
 /**
@@ -127,8 +128,8 @@ function buildPreamble(
   linkcolor=NavyBlue,
   citecolor=ForestGreen,
   urlcolor=MidnightBlue,
-  pdftitle={${frontmatter.title ?? 'Document'}},
-  pdfauthor={${Array.isArray(frontmatter.author) ? (frontmatter.author as string[]).join(', ') : (frontmatter.author ?? '')}},
+  pdftitle={${escapeLatex(frontmatter.title ?? 'Document')}},
+  pdfauthor={${escapeLatex(Array.isArray(frontmatter.author) ? (frontmatter.author as string[]).join(', ') : (frontmatter.author ?? ''))}},
   pdfsubject={},
   bookmarksnumbered=true,
   pdfpagemode=UseOutlines,
@@ -160,7 +161,7 @@ export function articleTemplate(
   const hasDate   = true; // always emit \date
 
   const titleLines: string[] = [];
-  if (hasTitle)  titleLines.push(`\\title{${frontmatter.title}}`);
+  if (hasTitle)  titleLines.push(`\\title{${escapeLatex(frontmatter.title as string)}}`);
   if (hasAuthor) titleLines.push(`\\author{${formatAuthors(frontmatter.author)}}`);
   titleLines.push(`\\date{${formatDate(frontmatter.date)}}`);
 
@@ -169,7 +170,7 @@ export function articleTemplate(
     : `\\begin{document}\n`;
 
   const abstractBlock = frontmatter.abstract
-    ? `\n\\begin{abstract}\n${frontmatter.abstract}\n\\end{abstract}\n\n\\bigskip\n`
+    ? `\n\\begin{abstract}\n${escapeLatex(frontmatter.abstract as string)}\n\\end{abstract}\n\n\\bigskip\n`
     : '';
 
   const fileContentsBlock = options.bibliographyContent

@@ -30,6 +30,15 @@ function rehypeSourceLinePlugin() {
   };
 }
 
+function escapeHtml(str: string): string {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 // Preview renderer using remark → rehype → KaTeX
 async function renderPreview(markdown: string, frontmatter: any): Promise<string> {
   const [
@@ -66,9 +75,19 @@ async function renderPreview(markdown: string, frontmatter: any): Promise<string
   let html = String(file);
 
   // Prepend a title block that looks like the LaTeX \maketitle
-  if (frontmatter.title || frontmatter.author || frontmatter.date) {
-    const titleHtml = frontmatter.title ? `<h1>${frontmatter.title}</h1>` : '';
-    const authorHtml = frontmatter.author ? `<p class="author">${Array.isArray(frontmatter.author) ? frontmatter.author.join(', ') : frontmatter.author}</p>` : '';
+  if (frontmatter.title || frontmatter.author || frontmatter.date || frontmatter.abstract) {
+    const escapedTitle = frontmatter.title ? escapeHtml(frontmatter.title) : '';
+    const titleHtml = escapedTitle ? `<h1>${escapedTitle}</h1>` : '';
+    
+    let escapedAuthor = '';
+    if (frontmatter.author) {
+      if (Array.isArray(frontmatter.author)) {
+        escapedAuthor = frontmatter.author.map((a: any) => escapeHtml(a)).join(', ');
+      } else {
+        escapedAuthor = escapeHtml(frontmatter.author);
+      }
+    }
+    const authorHtml = escapedAuthor ? `<p class="author">${escapedAuthor}</p>` : '';
     
     let dateStr = '';
     if (frontmatter.date) {
@@ -78,8 +97,11 @@ async function renderPreview(markdown: string, frontmatter: any): Promise<string
         dateStr = frontmatter.date.replace('\\today', new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }));
       }
     }
-    const dateHtml = dateStr ? `<p class="date">${dateStr}</p>` : '';
-    const abstractHtml = frontmatter.abstract ? `<div class="abstract"><strong>Abstract</strong><br>${frontmatter.abstract}</div>` : '';
+    const escapedDate = dateStr ? escapeHtml(dateStr) : '';
+    const dateHtml = escapedDate ? `<p class="date">${escapedDate}</p>` : '';
+    
+    const escapedAbstract = frontmatter.abstract ? escapeHtml(frontmatter.abstract) : '';
+    const abstractHtml = escapedAbstract ? `<div class="abstract"><strong>Abstract</strong><br>${escapedAbstract}</div>` : '';
 
     html = `<div class="maketitle">${titleHtml}${authorHtml}${dateHtml}</div>${abstractHtml}\n${html}`;
   }
@@ -95,11 +117,12 @@ export function useTranspiler() {
   const setLatexSourceMap = useEditorStore((s) => s.setLatexSourceMap);
 
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const abortRef = useRef(false);
+  const requestIdRef = useRef(0);
 
   const runTranspiler = useCallback(
     async (md: string, opts: TranspilerOptions) => {
-      abortRef.current = false;
+      requestIdRef.current += 1;
+      const currentId = requestIdRef.current;
       try {
         const { transpile } = await getTranspiler();
         const store = useEditorStore.getState();
@@ -117,7 +140,7 @@ export function useTranspiler() {
           bibliographyContent: bibDoc ? bibDoc.content : null,
         });
 
-        if (abortRef.current) return;
+        if (requestIdRef.current !== currentId) return;
         setLatex(result.latex);
         if (result.sourceMap) {
           setLatexSourceMap(result.sourceMap);
@@ -125,7 +148,7 @@ export function useTranspiler() {
 
         // Render preview in parallel
         const html = await renderPreview(md, result.frontmatter);
-        if (abortRef.current) return;
+        if (requestIdRef.current !== currentId) return;
         setPreview(html);
       } catch (err) {
         console.error('[useTranspiler] transpile error:', err);
@@ -135,8 +158,8 @@ export function useTranspiler() {
   );
 
   useEffect(() => {
-    // Cancel any in-flight render
-    abortRef.current = true;
+    // Cancel any in-flight render by incrementing requestIdRef
+    requestIdRef.current += 1;
     if (debounceRef.current) clearTimeout(debounceRef.current);
 
     debounceRef.current = setTimeout(() => {
@@ -145,7 +168,7 @@ export function useTranspiler() {
 
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
-      abortRef.current = true;
+      requestIdRef.current += 1;
     };
   }, [content, transpilerOptions, runTranspiler]);
 }

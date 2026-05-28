@@ -6,9 +6,11 @@ import type { NodeEmitter } from '../../types.js';
  */
 export const htmlEmitter: NodeEmitter = (node: any) => {
   const value: string = node.value ?? '';
-  // Strip HTML comments
-  if (value.trim().startsWith('<!--')) return '';
+  // Strip HTML comments robustly
+  const stripped = value.replace(/<!--[\s\S]*?-->/g, '');
+  if (!stripped.trim()) return '';
+  
   // Pass through as a LaTeX comment for transparency
-  const lines = value.split('\n').map((l: string) => `% HTML: ${l}`);
+  const lines = stripped.split('\n').map((l: string) => `% HTML: ${l}`);
   return `\n${lines.join('\n')}\n`;
 };

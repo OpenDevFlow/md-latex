@@ -1,36 +1,27 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# md-latex Web UI
 
-## Getting Started
+This is the frontend application for the `md-latex` monorepo. It is a modern, responsive web application built with [Next.js](https://nextjs.org/) and Tailwind CSS v4, providing a powerful 3-pane Markdown-to-LaTeX editing experience.
 
-First, run the development server:
+## Monorepo Workflow
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+Since this application is part of a Turborepo, it's best to run commands from the repository root:
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- **Install dependencies:** `pnpm install`
+- **Development server:** `pnpm --filter web dev`
+- **Build production bundle:** `pnpm --filter web build`
+- **Run tests:** `pnpm --filter web test`
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+You can also navigate to `apps/web` and use local `npm run dev` if preferred.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Key Features
 
-## Learn More
+- **3-Pane Synchronized Editor:** Edit Markdown and see real-time updates in both the generated LaTeX source and the compiled HTML preview. Scrolling is intelligently synchronized across all three panes using Abstract Syntax Tree (AST) positional mapping.
+- **texlive.net PDF Export:** Seamlessly generate and download PDF documents. The app bypasses CORS restrictions using a hidden iframe POST method to securely compile LaTeX via the public texlive.net service.
+- **Bibliography Management:** Upload `.bib` files directly into the virtual file tree. The editor handles `filecontents` embedding and citation formatting.
 
-To learn more about Next.js, take a look at the following resources:
+## Usage Guide
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. **Launch the Editor:** Start the dev server and open [http://localhost:3000](http://localhost:3000).
+2. **File Associations:** Create new `.md` files or upload existing `.bib` files via the sidebar.
+3. **Live Preview Sync:** As you edit, the preview pane automatically flashes and scrolls to the closest matching line number.
+4. **Export Limitations:** The PDF generation flow relies on the availability of the external `texlive.net` service. It requires an active internet connection and may time out on extremely large documents (timeout is set to 30s).

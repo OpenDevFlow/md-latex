@@ -16,12 +16,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
         with:
           fetch-depth: 0
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version: 20
 
@@ -38,14 +38,16 @@ jobs:
           echo "$EOF" >> $GITHUB_OUTPUT
 
       - name: Create Git Tag
+        env:
+          GIT_TAG: "v${{ github.event.inputs.version }}"
         run: |
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-          git tag -a "v${{ github.event.inputs.version }}" -m "Release v${{ github.event.inputs.version }}"
-          git push origin "v${{ github.event.inputs.version }}"
+          git tag -a "$GIT_TAG" -m "Release $GIT_TAG"
+          git push origin "$GIT_TAG"
 
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65
         with:
           tag_name: "v${{ github.event.inputs.version }}"
           name: "Release v${{ github.event.inputs.version }}"
@@ -53,10 +55,12 @@ jobs:
           # GitHub automatically attaches source code (.zip and .tar.gz) for releases
 
       - name: Update Package Versions
+        env:
+          VERSION: ${{ github.event.inputs.version }}
         run: |
           node -e "
           const fs = require('fs');
-          const version = '${{ github.event.inputs.version }}';
+          const version = process.env.VERSION;
           const files = ['package.json', 'apps/web/package.json', 'packages/transpiler/package.json'];
           files.forEach(file => {
             if (fs.existsSync(file)) {
@@ -69,14 +73,16 @@ jobs:
           "
 
       - name: Update CHANGELOG.md
+        env:
+          VERSION: ${{ github.event.inputs.version }}
         run: |
-          VERSION="${{ github.event.inputs.version }}"
           DATE=$(date +'%Y-%m-%d')
+          export DATE
           
           # Replace '## [Unreleased]' with '## [Unreleased]\n\n## [VERSION] - DATE'
-          awk -v ver="$VERSION" -v date="$DATE" '
+          awk '
             /^## \[Unreleased\]/ {
-              print "## [Unreleased]\n\n## [" ver "] - " date
+              print "## [Unreleased]\n\n## [" ENVIRON["VERSION"] "] - " ENVIRON["DATE"]
               next
             }
             {print}
@@ -84,7 +90,7 @@ jobs:
           mv CHANGELOG.tmp.md CHANGELOG.md
 
       - name: Create Pull Request for Version Bump
-        uses: peter-evans/create-pull-request@v6
+        uses: peter-evans/create-pull-request@c5a7806660adbe173f04e3e038b0ccdcd758773c
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           commit-message: "chore(release): bump version to ${{ github.event.inputs.version }}"

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useEditorStore } from '@/store/editorStore';
 import { useExport } from '@/hooks/useExport';
 import { SettingsModal } from '@/components/editor/SettingsModal';
@@ -24,6 +24,11 @@ export function Toolbar() {
   const [copied, setCopied] = useState(false);
 
   const currentDoc = documents.find((d) => d.id === currentDocId);
+
+  useEffect(() => {
+    setDocTitle(currentDoc?.title ?? '');
+    setCopied(false);
+  }, [currentDocId, currentDoc?.title]);
 
   async function handleCopyLatex() {
     const ok = await copyLatex();

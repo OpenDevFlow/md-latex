@@ -138,18 +138,37 @@ export function useExport() {
       iframe.style.opacity = '0';
       iframe.style.transition = 'opacity 0.3s ease';
       
-      iframe.onload = () => {
-        try {
-          const href = iframe.contentWindow?.location?.href;
-          if (!href || href === 'about:blank' || href === '') {
-            return; // Ignore initial blank load
+      let timer: NodeJS.Timeout;
+
+      const resultPromise = new Promise<boolean>((resolve, reject) => {
+        iframe.onload = () => {
+          try {
+            const href = iframe.contentWindow?.location?.href;
+            if (!href || href === 'about:blank' || href === '') {
+              return; // Ignore initial blank load
+            }
+          } catch (e) {
+            // SecurityError means it successfully navigated to the cross-origin texlive.net!
           }
-        } catch (e) {
-          // SecurityError means it successfully navigated to the cross-origin texlive.net!
-        }
-        loaderContainer.style.display = 'none';
-        iframe.style.opacity = '1';
-      };
+          clearTimeout(timer);
+          loaderContainer.style.display = 'none';
+          iframe.style.opacity = '1';
+          resolve(true);
+        };
+
+        iframe.onerror = () => {
+          clearTimeout(timer);
+          loaderContainer.style.display = 'none';
+          iframe.style.opacity = '1';
+          reject(new Error('Failed to load PDF'));
+        };
+
+        timer = setTimeout(() => {
+          loaderContainer.style.display = 'none';
+          iframe.style.opacity = '1';
+          reject(new Error('PDF generation timed out'));
+        }, 30000);
+      });
 
       iframeWrapper.appendChild(loaderContainer);
       iframeWrapper.appendChild(iframe);
@@ -186,7 +205,7 @@ export function useExport() {
       // Cleanup the form element after submit (leave the overlay/iframe open)
       setTimeout(() => document.body.removeChild(form), 1000);
       
-      return true;
+      return await resultPromise;
     } catch (e: any) {
       console.error(e);
       throw new Error('Failed to export PDF');

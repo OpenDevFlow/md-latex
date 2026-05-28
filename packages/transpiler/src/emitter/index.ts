@@ -73,25 +73,24 @@ const DEFAULT_EMITTERS: Record<string, NodeEmitter> = {
 // LaTeX special character escaping
 // ──────────────────────────────────────────────────────────
 
-const LATEX_ESCAPE_MAP: Array<[RegExp, string]> = [
-  [/\\/g, '\\textbackslash{}'],
-  [/\{/g, '\\{'],
-  [/\}/g, '\\}'],
-  [/%/g,  '\\%'],
-  [/\$/g, '\\$'],
-  [/#/g,  '\\#'],
-  [/&/g,  '\\&'],
-  [/_/g,  '\\_'],
-  [/\^/g, '\\^{}'],
-  [/~/g,  '\\textasciitilde{}'],
-];
+const LATEX_ESCAPE_MAP: Record<string, string> = {
+  '\\': '\\textbackslash{}',
+  '{': '\\{',
+  '}': '\\}',
+  '%': '\\%',
+  '$': '\\$',
+  '#': '\\#',
+  '&': '\\&',
+  '_': '\\_',
+  '^': '\\^{}',
+  '~': '\\textasciitilde{}',
+};
+
+const LATEX_ESCAPE_REGEX = /\\|\{|\}|%|\$|#|&|_|\^|~/g;
 
 export function escapeLatex(text: string): string {
-  // Don't double-escape — skip if already processed by an emitter
-  return LATEX_ESCAPE_MAP.reduce(
-    (acc, [re, replacement]) => acc.replace(re, replacement),
-    text,
-  );
+  if (!text) return '';
+  return String(text).replace(LATEX_ESCAPE_REGEX, (match) => LATEX_ESCAPE_MAP[match] || match);
 }
 
 // ──────────────────────────────────────────────────────────
