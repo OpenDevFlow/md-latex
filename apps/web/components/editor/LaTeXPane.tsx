@@ -106,6 +106,8 @@ export function LaTeXPane({ className = '' }: LaTeXPaneProps) {
   const activeLine = useEditorStore((s) => s.activeLine);
   const latexSourceMap = useEditorStore((s) => s.latexSourceMap);
 
+  const lastHighlightedLine = useRef<number>(-1);
+
   // Sync scroll
   useEffect(() => {
     const view = editorRef.current;
@@ -124,11 +126,15 @@ export function LaTeXPane({ className = '' }: LaTeXPaneProps) {
     if (targetTexLine !== -1) {
       const doc = view.state.doc;
       if (targetTexLine <= doc.lines) {
-        const lineInfo = doc.line(targetTexLine);
-        view.dispatch({
-          selection: { anchor: lineInfo.from, head: lineInfo.from },
-          effects: EditorViewCore.scrollIntoView(lineInfo.from, { y: 'center' })
-        });
+        // Only update selection if it's a new line, to prevent jitter while typing
+        if (lastHighlightedLine.current !== targetTexLine) {
+          lastHighlightedLine.current = targetTexLine;
+          const lineInfo = doc.line(targetTexLine);
+          view.dispatch({
+            selection: { anchor: lineInfo.from, head: lineInfo.from },
+            effects: EditorViewCore.scrollIntoView(lineInfo.from, { y: 'nearest' })
+          });
+        }
       }
     }
   }, [activeLine, latexSourceMap]);

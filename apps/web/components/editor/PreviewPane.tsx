@@ -13,6 +13,7 @@ export function PreviewPane({ className = '' }: PreviewPaneProps) {
   const theme = useEditorStore((s) => s.theme);
   const activeLine = useEditorStore((s) => s.activeLine);
   const containerRef = useRef<HTMLDivElement>(null);
+  const lastHighlightedLine = useRef<number>(-1);
 
   useEffect(() => {
     if (!activeLine || !containerRef.current) return;
@@ -33,21 +34,26 @@ export function PreviewPane({ className = '' }: PreviewPaneProps) {
     });
 
     if (targetEl) {
-      // Avoid scrolling if it's already mostly in view to prevent jumpiness
-      const htmlEl = targetEl as HTMLElement;
-      const rect = htmlEl.getBoundingClientRect();
-      const containerRect = containerRef.current.getBoundingClientRect();
-      const isInView = rect.top >= containerRect.top && rect.bottom <= containerRect.bottom;
-      
-      if (!isInView) {
-        htmlEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }
+      // Avoid redundant highlights on every keystroke
+      if (lastHighlightedLine.current !== closestLine) {
+        lastHighlightedLine.current = closestLine;
 
-      // Briefly highlight
-      htmlEl.classList.add('highlight-flash');
-      setTimeout(() => htmlEl?.classList.remove('highlight-flash'), 1000);
+        // Avoid scrolling if it's already mostly in view to prevent jumpiness
+        const htmlEl = targetEl as HTMLElement;
+        const rect = htmlEl.getBoundingClientRect();
+        const containerRect = containerRef.current.getBoundingClientRect();
+        const isInView = rect.top >= containerRect.top && rect.bottom <= containerRect.bottom;
+        
+        if (!isInView) {
+          htmlEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        // Briefly highlight
+        htmlEl.classList.add('highlight-flash');
+        setTimeout(() => htmlEl?.classList.remove('highlight-flash'), 1000);
+      }
     }
-  }, [activeLine]);
+  }, [activeLine, preview]);
 
   return (
     <div className={`preview-pane flex flex-col h-full ${className}`}>
