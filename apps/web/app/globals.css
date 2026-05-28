@@ -455,18 +455,52 @@ body {
 }
 
 /* ═══════════════════════════════════════════════════════════
-   PREVIEW PANE — Prose styles
+   PREVIEW PANE — LaTeX Academic Typography
    ═══════════════════════════════════════════════════════════ */
+
+@font-face {
+  font-family: 'Latin Modern Roman';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('https://cdn.jsdelivr.net/gh/vincentdoerig/latex-css/fonts/LM-regular.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Latin Modern Roman';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url('https://cdn.jsdelivr.net/gh/vincentdoerig/latex-css/fonts/LM-italic.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Latin Modern Roman';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('https://cdn.jsdelivr.net/gh/vincentdoerig/latex-css/fonts/LM-bold.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Latin Modern Roman';
+  font-style: italic;
+  font-weight: 700;
+  font-display: swap;
+  src: url('https://cdn.jsdelivr.net/gh/vincentdoerig/latex-css/fonts/LM-bold-italic.woff2') format('woff2');
+}
+
 .preview-pane {
   background: var(--color-surface);
 }
 
 .preview-content {
   background: var(--color-surface);
-  font-family: var(--font-inter), 'Inter', system-ui, sans-serif;
-  font-size: 15px;
-  line-height: 1.75;
+  font-family: 'Latin Modern Roman', Georgia, 'Times New Roman', serif;
+  font-size: 16px;
+  line-height: 1.6;
   color: var(--prose-body);
+  text-align: justify;
+  hyphens: auto;
+  -webkit-hyphens: auto;
+  padding: 1rem 2rem;
 }
 
 .preview-content h1,
@@ -477,14 +511,15 @@ body {
 .preview-content h6 {
   color: var(--prose-heading);
   font-weight: 700;
-  line-height: 1.3;
-  margin-top: 1.5em;
-  margin-bottom: 0.5em;
+  line-height: 1.2;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+  font-family: 'Latin Modern Roman', Georgia, 'Times New Roman', serif;
 }
-.preview-content h1 { font-size: 1.75em; border-bottom: 1px solid var(--prose-hr); padding-bottom: 0.3em; }
-.preview-content h2 { font-size: 1.4em; border-bottom: 1px solid var(--prose-hr); padding-bottom: 0.2em; }
-.preview-content h3 { font-size: 1.2em; }
-.preview-content h4 { font-size: 1.05em; }
+.preview-content h1 { font-size: 2em; text-align: center; border-bottom: none; }
+.preview-content h2 { font-size: 1.5em; border-bottom: none; }
+.preview-content h3 { font-size: 1.25em; }
+.preview-content h4 { font-size: 1.1em; }
 
 .preview-content p    { margin-bottom: 1em; }
 .preview-content strong { color: var(--prose-heading); font-weight: 700; }
