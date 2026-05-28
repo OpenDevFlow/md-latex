@@ -100,6 +100,7 @@ interface EditorState {
   layout: LayoutMode;
   activePane: ActivePane;
   theme: Theme;
+  showSidebar: boolean;
 
   // Document management
   documents: Document[];
@@ -112,6 +113,7 @@ interface EditorState {
   setLayout: (layout: LayoutMode) => void;
   setActivePane: (pane: ActivePane) => void;
   setTheme: (theme: Theme) => void;
+  toggleSidebar: () => void;
   setTranspilerOptions: (opts: Partial<TranspilerOptions>) => void;
 
   // Document actions
@@ -141,6 +143,7 @@ export const useEditorStore = create<EditorState>()(
       layout: '3-pane',
       activePane: 'md',
       theme: 'dark',
+      showSidebar: true,
       documents: [],
       currentDocId: null,
 
@@ -151,6 +154,7 @@ export const useEditorStore = create<EditorState>()(
       setLayout: (layout) => set({ layout }),
       setActivePane: (activePane) => set({ activePane }),
       setTheme: (theme) => set({ theme }),
+      toggleSidebar: () => set((s) => ({ showSidebar: !s.showSidebar })),
       setTranspilerOptions: (opts) =>
         set((s) => ({
           transpilerOptions: { ...s.transpilerOptions, ...opts },
@@ -211,6 +215,7 @@ export const useEditorStore = create<EditorState>()(
         transpilerOptions: state.transpilerOptions,
         layout: state.layout,
         theme: state.theme,
+        showSidebar: state.showSidebar,
         documents: state.documents,
         content: state.content,
         currentDocId: state.currentDocId,

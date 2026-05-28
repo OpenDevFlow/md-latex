@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { Toolbar } from '@/components/editor/Toolbar';
 import { SplitLayout } from '@/components/layout/SplitLayout';
 import { PaneSwitcher } from '@/components/layout/PaneSwitcher';
+import { Sidebar } from '@/components/layout/Sidebar';
 import { MDEditor } from '@/components/editor/MDEditor';
 import { LaTeXPane } from '@/components/editor/LaTeXPane';
 import { PreviewPane } from '@/components/editor/PreviewPane';
@@ -28,14 +29,20 @@ export default function EditorPage() {
   return (
     <div className="editor-shell" data-theme={theme}>
       <Toolbar />
-      <main className="editor-main" id="main-content" aria-label="Editor">
-        {/* Desktop: resizable split layout */}
-        <div className="desktop-layout">
-          <SplitLayout />
-        </div>
-        {/* Mobile: single active pane */}
-        <div className="mobile-layout">
-          <MobilePaneView />
+      <main className="editor-main flex flex-row" id="main-content" aria-label="Editor">
+        {/* Left Sidebar */}
+        <Sidebar />
+        
+        {/* Main working area */}
+        <div className="flex-1 flex flex-col min-w-0">
+          {/* Desktop: resizable split layout */}
+          <div className="desktop-layout">
+            <SplitLayout />
+          </div>
+          {/* Mobile: single active pane */}
+          <div className="mobile-layout">
+            <MobilePaneView />
+          </div>
         </div>
       </main>
       {/* Mobile bottom tab bar */}
