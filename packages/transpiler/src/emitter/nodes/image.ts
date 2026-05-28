@@ -1,5 +1,6 @@
 import type { Image } from 'mdast';
 import type { NodeEmitter } from '../../types.js';
+import { escapeLatex } from '../index.js';
 
 export const imageEmitter: NodeEmitter = (node: Image) => {
   const url = node.url;
@@ -12,11 +13,11 @@ export const imageEmitter: NodeEmitter = (node: Image) => {
   const lines = [
     `\n\\begin{figure}[H]`,
     `  \\centering`,
-    `  \\includegraphics[width=0.80\\linewidth]{${url}}`,
+    `  \\includegraphics[width=0.80\\linewidth]{${escapeLatex(url)}}`,
   ];
 
-  if (caption) lines.push(`  \\caption{${caption}}`);
-  if (label)   lines.push(`  \\label{${label}}`);
+  if (caption) lines.push(`  \\caption{${escapeLatex(caption)}}`);
+  if (label)   lines.push(`  \\label{${escapeLatex(label)}}`);
   lines.push(`\\end{figure}\n`);
 
   return lines.join('\n');

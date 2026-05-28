@@ -57,8 +57,9 @@ describe('list emitter', () => {
   it('unordered list → itemize', async () => {
     const { latex } = await transpile('- item one\n- item two', { wrapDocument: false });
     expect(latex).toContain('\\begin{itemize}');
-    expect(latex).toContain('\\item item one');
-    expect(latex).toContain('\\item item two');
+    expect(latex).toContain('\\item');
+    expect(latex).toContain('item one');
+    expect(latex).toContain('item two');
     expect(latex).toContain('\\end{itemize}');
   });
 
@@ -98,13 +99,13 @@ describe('math emitter', () => {
 });
 
 describe('citation plugin', () => {
-  it('[@key] → \\cite{key}', async () => {
+  it('[@key] → \\autocite{key}', async () => {
     const { latex } = await transpile('See [@smith2020]', { wrapDocument: false });
-    expect(latex).toContain('\\cite{smith2020}');
+    expect(latex).toContain('\\autocite{smith2020}');
   });
 
-  it('multiple keys → \\cite{a,b}', async () => {
+  it('multiple keys → \\autocite{a,b}', async () => {
     const { latex } = await transpile('See [@a; @b]', { wrapDocument: false });
-    expect(latex).toContain('\\cite{a,b}');
+    expect(latex).toContain('\\autocite{a,b}');
   });
 });

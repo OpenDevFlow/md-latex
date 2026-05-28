@@ -12,7 +12,7 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
   const setTranspilerOptions = useEditorStore((s) => s.setTranspilerOptions);
 
   // Filter out folders to only show files for the bibliography selection
-  const bibFiles = documents.filter((d) => d.type !== 'folder');
+  const bibFiles = documents.filter((d) => d.type === 'bib' || (d.title && d.title.toLowerCase().endsWith('.bib')));
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm">

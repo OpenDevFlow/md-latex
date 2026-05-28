@@ -49,22 +49,44 @@ export function SplitLayout() {
       const { divider, startWidths } = dragging.current;
 
       if (divider === 'md-latex') {
-        const newMd = Math.max((MIN_PANE_WIDTH / containerWidth) * 100, startWidths.md + dxPct);
-        const newLatex = Math.max((MIN_PANE_WIDTH / containerWidth) * 100, startWidths.latex - dxPct);
-        const total = newMd + newLatex;
+        const minPct = (MIN_PANE_WIDTH / containerWidth) * 100;
+        let newMd = startWidths.md + dxPct;
+        let newLatex = startWidths.latex - dxPct;
+
+        if (newMd < minPct) {
+          const deficit = minPct - newMd;
+          newMd = minPct;
+          newLatex -= deficit;
+        } else if (newLatex < minPct) {
+          const deficit = minPct - newLatex;
+          newLatex = minPct;
+          newMd -= deficit;
+        }
+
         setPaneWidths((w) => ({
           ...w,
-          md: (newMd / total) * (newMd + newLatex),
-          latex: (newLatex / total) * (newMd + newLatex),
+          md: newMd,
+          latex: newLatex,
         }));
       } else {
-        const newLatex = Math.max((MIN_PANE_WIDTH / containerWidth) * 100, startWidths.latex + dxPct);
-        const newPreview = Math.max((MIN_PANE_WIDTH / containerWidth) * 100, startWidths.preview - dxPct);
-        const total = newLatex + newPreview;
+        const minPct = (MIN_PANE_WIDTH / containerWidth) * 100;
+        let newLatex = startWidths.latex + dxPct;
+        let newPreview = startWidths.preview - dxPct;
+
+        if (newLatex < minPct) {
+          const deficit = minPct - newLatex;
+          newLatex = minPct;
+          newPreview -= deficit;
+        } else if (newPreview < minPct) {
+          const deficit = minPct - newPreview;
+          newPreview = minPct;
+          newLatex -= deficit;
+        }
+
         setPaneWidths((w) => ({
           ...w,
-          latex: (newLatex / total) * (newLatex + newPreview),
-          preview: (newPreview / total) * (newLatex + newPreview),
+          latex: newLatex,
+          preview: newPreview,
         }));
       }
     }

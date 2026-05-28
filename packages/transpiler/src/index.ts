@@ -38,20 +38,28 @@ export async function transpile(
 
   // 2. Extract frontmatter synchronously (js-yaml is sync)
   const frontmatter: FrontmatterData = {};
+  const yamlWarnings: Array<{ type: 'warn' | 'error'; message: string; node?: any }> = [];
+  
   visit(root, 'yaml', (node: any) => {
     try {
       const parsed = jsYaml.load(node.value) as Record<string, unknown>;
       if (parsed && typeof parsed === 'object') {
         Object.assign(frontmatter, parsed);
       }
-    } catch {
-      // Malformed YAML — ignore
+    } catch (err: any) {
+      yamlWarnings.push({
+        type: 'error',
+        message: `Failed to parse YAML frontmatter: ${err.message}`,
+        node,
+      });
     }
   });
   root.frontmatter = frontmatter;
 
   // 3. Emit LaTeX
-  const { latex, warnings, sourceMap } = emitLatex(root, options, plugins);
+  const { latex, warnings: emitterWarnings, sourceMap } = emitLatex(root, options, plugins);
+
+  const warnings = [...yamlWarnings, ...emitterWarnings];
 
   return { latex, frontmatter, warnings, sourceMap };
 }

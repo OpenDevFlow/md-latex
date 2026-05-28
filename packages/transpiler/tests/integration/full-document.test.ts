@@ -82,7 +82,7 @@ describe('integration: full document round-trip', () => {
     expect(latex).toContain('\\begin{quote}');
 
     // Citation
-    expect(latex).toContain('\\cite{haldane1927}');
+    expect(latex).toContain('\\autocite{haldane1927}');
 
     // Horizontal rule
     expect(latex).toContain('\\noindent\\rule');

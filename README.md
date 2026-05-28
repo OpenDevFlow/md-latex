@@ -34,7 +34,7 @@ Make sure you have [Node.js](https://nodejs.org/) (v18+) and [pnpm](https://pnpm
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/yourusername/md-latex.git
+   git clone https://github.com/OpenDevFlow/md-latex.git
    cd md-latex
    ```
 
@@ -86,7 +86,7 @@ In parallel to LaTeX generation, the AST is converted to HTML for live viewing:
 The source mapping from both the LaTeX transpilation and the HTML tagging enables precise scroll synchronization:
 - **Cursor Tracking:** The CodeMirror Markdown editor uses an `updateListener` to constantly monitor your cursor's line number and saves it to a global `Zustand` store as `activeLine`.
 - **LaTeX Sync:** The LaTeX pane watches `activeLine`, cross-references it against the generated `sourceMap`, and programmatically sets the CodeMirror selection to the exact corresponding LaTeX line, Native CodeMirror active-line styling then visually highlights the block.
-- **Preview Sync:** The HTML Preview pane watches `activeLine`, queries the DOM for an element matching `[data-source-line="X"]`, and calls `scrollIntoView()`. A CSS animation (`.highlight-flash`) is then applied to the element to draw the user's attention.
+- **Preview Sync:** The HTML Preview pane watches `activeLine`, queries the DOM for an element matching `[data-source-line="X"]`, and calls `scrollIntoView()`.
 
 ## License
 

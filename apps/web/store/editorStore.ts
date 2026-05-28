@@ -239,7 +239,7 @@ export const useEditorStore = create<EditorState>()(
       },
 
       deleteDocument: (id) => {
-        const { documents, currentDocId } = get();
+        const { documents, currentDocId, transpilerOptions } = get();
         // Also delete children if it's a folder
         const toDelete = new Set([id]);
         let changed = true;
@@ -253,9 +253,15 @@ export const useEditorStore = create<EditorState>()(
           }
         }
         
+        let newTranspilerOptions = transpilerOptions;
+        if (transpilerOptions?.bibliographyId && toDelete.has(transpilerOptions.bibliographyId)) {
+          newTranspilerOptions = { ...transpilerOptions, bibliographyId: null };
+        }
+        
         set({
           documents: documents.filter((d) => !toDelete.has(d.id)),
           currentDocId: toDelete.has(currentDocId!) ? null : currentDocId,
+          transpilerOptions: newTranspilerOptions,
         });
       },
 

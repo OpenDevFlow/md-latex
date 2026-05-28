@@ -1,5 +1,6 @@
 import type { Code } from 'mdast';
 import type { NodeEmitter } from '../../types.js';
+import { escapeLatex } from '../index.js';
 
 /**
  * Maps common language identifiers to lstlisting language names.
@@ -7,7 +8,7 @@ import type { NodeEmitter } from '../../types.js';
 const LANGUAGE_MAP: Record<string, string> = {
   js: 'JavaScript',
   javascript: 'JavaScript',
-  ts: 'Typescript',
+  ts: 'TypeScript',
   typescript: 'TypeScript',
   py: 'Python',
   python: 'Python',
@@ -46,7 +47,7 @@ export const codeEmitter: NodeEmitter = (node: Code, ctx) => {
   const rawLang = node.lang ?? '';
   const lang = LANGUAGE_MAP[rawLang.toLowerCase()] ?? rawLang;
   const langOpt = lang ? `, language=${lang}` : '';
-  const caption = node.meta ? `, caption={${node.meta}}` : '';
+  const caption = node.meta ? `, caption={${escapeLatex(node.meta)}}` : '';
 
   return `\n\\begin{lstlisting}[frame=single${langOpt}${caption}]\n${node.value}\n\\end{lstlisting}\n`;
 };

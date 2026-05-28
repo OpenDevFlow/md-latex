@@ -134,6 +134,7 @@ function FileTree({ level, parentId, editingId, setEditingId, editTitle, setEdit
                   deleteDocument(doc.id);
                 }}
                 title={isFolder ? "Delete folder" : "Delete file"}
+                aria-label={isFolder ? "Delete folder" : "Delete file"}
               >
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/>
@@ -238,12 +239,12 @@ export function Sidebar() {
             <span className="font-semibold text-sm">File tree</span>
           </button>
           <div className="sidebar-actions flex items-center gap-3 text-text-muted">
-            <button title="New File" onClick={() => newDocument()} className="hover:text-text transition-colors">
+            <button title="New File" aria-label="New File" onClick={() => newDocument()} className="hover:text-text transition-colors">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/>
               </svg>
             </button>
-            <button title="New Folder" onClick={() => newFolder()} className="hover:text-text transition-colors">
+            <button title="New Folder" aria-label="New Folder" onClick={() => newFolder()} className="hover:text-text transition-colors">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/><line x1="12" y1="11" x2="12" y2="17"/><line x1="9" y1="14" x2="15" y2="14"/>
               </svg>
@@ -255,12 +256,12 @@ export function Sidebar() {
               accept=".md,.txt,.tex" 
               onChange={handleFileUpload} 
             />
-            <button title="Upload File" onClick={() => fileInputRef.current?.click()} className="hover:text-text transition-colors">
+            <button title="Upload File" aria-label="Upload File" onClick={() => fileInputRef.current?.click()} className="hover:text-text transition-colors">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
               </svg>
             </button>
-            <button title="Close Sidebar" onClick={toggleSidebar} className="hover:text-text transition-colors">
+            <button title="Close Sidebar" aria-label="Close Sidebar" onClick={toggleSidebar} className="hover:text-text transition-colors">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
               </svg>
