@@ -60,7 +60,7 @@ export function useExport() {
       header.style.color = '#fff';
 
       const title = document.createElement('h3');
-      title.innerText = 'PDF Export (Generated via texlive.net)';
+      title.innerText = 'PDF Export ';
       title.style.margin = '0';
       title.style.fontSize = '16px';
       title.style.fontWeight = '500';
