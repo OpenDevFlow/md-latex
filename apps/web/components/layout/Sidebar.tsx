@@ -24,10 +24,31 @@ function FileTree({ level, parentId }: { level: number, parentId: string | null 
   const loadDocument = useEditorStore((s) => s.loadDocument);
   const deleteDocument = useEditorStore((s) => s.deleteDocument);
   const toggleFolder = useEditorStore((s) => s.toggleFolder);
+  const moveItem = useEditorStore((s) => s.moveItem);
   
   const items = documents.filter(d => (d.parentId || null) === parentId);
   
   if (items.length === 0) return null;
+
+  const handleDragStart = (e: React.DragEvent, id: string) => {
+    e.dataTransfer.setData('text/plain', id);
+    e.stopPropagation();
+  };
+
+  const handleDragOver = (e: React.DragEvent, isFolder: boolean) => {
+    if (isFolder) {
+      e.preventDefault(); // Allow drop
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent, targetId: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const draggedId = e.dataTransfer.getData('text/plain');
+    if (draggedId && draggedId !== targetId) {
+      moveItem(draggedId, targetId);
+    }
+  };
   
   return (
     <>
@@ -38,6 +59,10 @@ function FileTree({ level, parentId }: { level: number, parentId: string | null 
         return (
           <div key={doc.id}>
             <div
+              draggable
+              onDragStart={(e) => handleDragStart(e, doc.id)}
+              onDragOver={(e) => handleDragOver(e, isFolder)}
+              onDrop={(e) => isFolder ? handleDrop(e, doc.id) : undefined}
               className={`file-item group ${currentDocId === doc.id ? 'active' : ''}`}
               style={{ paddingLeft }}
               onClick={() => isFolder ? toggleFolder(doc.id) : loadDocument(doc)}
@@ -90,6 +115,7 @@ export function Sidebar() {
   const newDocument = useEditorStore((s) => s.newDocument);
   const newFolder = useEditorStore((s) => s.newFolder);
   const deleteDocument = useEditorStore((s) => s.deleteDocument);
+  const moveItem = useEditorStore((s) => s.moveItem);
   const content = useEditorStore((s) => s.content);
 
   const [treeExpanded, setTreeExpanded] = useState(true);
@@ -186,7 +212,21 @@ export function Sidebar() {
         </div>
         
         {treeExpanded && (
-          <div className="sidebar-content file-list">
+          <div 
+            className="sidebar-content file-list flex-1 min-h-[100px]"
+            onDragOver={(e) => {
+              e.preventDefault(); // allow drop
+            }}
+            onDrop={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              const draggedId = e.dataTransfer.getData('text/plain');
+              if (draggedId) {
+                // If it's dropped in the root container and not caught by a folder
+                moveItem(draggedId, null);
+              }
+            }}
+          >
             {documents.length === 0 ? (
               <div className="text-xs text-text-faint italic px-2">No documents saved.</div>
             ) : (
