@@ -84,12 +84,19 @@ export function useTranspiler() {
       abortRef.current = false;
       try {
         const { transpile } = await getTranspiler();
+        const store = useEditorStore.getState();
+        const bibDoc = opts.bibliographyId 
+          ? store.documents.find(d => d.id === opts.bibliographyId)
+          : null;
+
         const result = await transpile(md, {
           documentClass: opts.documentClass,
           packages: opts.packages,
           template: opts.template,
           wrapDocument: opts.wrapDocument,
           codeRenderer: opts.codeRenderer,
+          citationStyle: opts.citationStyle,
+          bibliographyContent: bibDoc ? bibDoc.content : null,
         });
 
         if (abortRef.current) return;

@@ -5,5 +5,5 @@ import type { NodeEmitter, CitationNode } from '../../types.js';
  * Multiple keys: [@a; @b] → \cite{a,b}
  */
 export const citationEmitter: NodeEmitter = (node: CitationNode) => {
-  return `\\cite{${node.keys.join(',')}}`;
+  return `\\autocite{${node.keys.join(',')}}`;
 };

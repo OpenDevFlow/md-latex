@@ -25,6 +25,10 @@ export interface TranspilerOptions {
   wrapDocument?: boolean;
   /** Code block renderer: 'lstlisting' | 'minted' (default: 'lstlisting') */
   codeRenderer?: 'lstlisting' | 'minted';
+  /** Citation style (e.g. 'apa', 'ieee', 'mla') */
+  citationStyle?: string;
+  /** Content of a bibliography file to embed via filecontents */
+  bibliographyContent?: string | null;
 }
 
 // ──────────────────────────────────────────────────────────
