@@ -1,5 +1,5 @@
 import type { Blockquote } from 'mdast';
-import type { NodeEmitter } from '../types';
+import type { NodeEmitter } from '../../types.js';
 
 export const blockquoteEmitter: NodeEmitter = (node: Blockquote, ctx) => {
   const content = ctx.emit(node.children).trim();

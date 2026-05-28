@@ -1,5 +1,5 @@
 import type { Table, TableRow, TableCell } from 'mdast';
-import type { NodeEmitter } from '../types';
+import type { NodeEmitter } from '../../types.js';
 
 function getAlignChar(align: string | null | undefined): string {
   switch (align) {

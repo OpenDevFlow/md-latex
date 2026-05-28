@@ -1,4 +1,4 @@
-import type { FrontmatterData, TranspilerOptions } from '../types';
+import type { FrontmatterData, TranspilerOptions } from '../../types.js';
 
 // ──────────────────────────────────────────────────────────
 // Helpers

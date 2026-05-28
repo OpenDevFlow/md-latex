@@ -6,8 +6,8 @@ import type {
   TranspilerOptions,
   TranspilerPlugin,
   TranspileWarning,
-} from '../types';
-import type { RootWithFrontmatter } from '../types';
+} from '../types.js';
+import type { RootWithFrontmatter } from '../types.js';
 
 import { headingEmitter }      from './nodes/heading';
 import { paragraphEmitter }    from './nodes/paragraph';

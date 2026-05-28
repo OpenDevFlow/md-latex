@@ -1,4 +1,4 @@
-import type { NodeEmitter } from '../types';
+import type { NodeEmitter } from '../../types.js';
 
 /**
  * Thematic break (---) → a full-width horizontal rule.

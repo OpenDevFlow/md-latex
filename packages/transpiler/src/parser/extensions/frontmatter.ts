@@ -2,7 +2,7 @@ import type { Plugin } from 'unified';
 import type { Root } from 'mdast';
 import { visit } from 'unist-util-visit';
 import jsYaml from 'js-yaml';
-import type { FrontmatterData, RootWithFrontmatter } from '../types';
+import type { FrontmatterData, RootWithFrontmatter } from '../../types.js';
 
 /**
  * Remark plugin that parses YAML front matter nodes (produced by

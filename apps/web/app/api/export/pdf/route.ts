@@ -12,7 +12,7 @@ export async function POST(req: NextRequest) {
     const formData = new FormData();
     formData.append('filecontents[]', latex);
     formData.append('filename[]', 'document.tex');
-    formData.append('engine', 'pdflatex');
+    formData.append('engine', 'xelatex');
     formData.append('return', 'pdf');
 
     const response = await fetch('https://texlive.net/cgi-bin/latexcgi', {
@@ -25,6 +25,15 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(
         { error: 'PDF compilation failed', details: text },
         { status: 500 }
+      );
+    }
+
+    const contentType = response.headers.get('content-type') || '';
+    if (!contentType.includes('application/pdf')) {
+      const text = await response.text();
+      return NextResponse.json(
+        { error: 'LaTeX compilation error', details: text },
+        { status: 400 }
       );
     }
 

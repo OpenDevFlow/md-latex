@@ -1,5 +1,5 @@
 import type { Code } from 'mdast';
-import type { NodeEmitter } from '../types';
+import type { NodeEmitter } from '../../types.js';
 
 /**
  * Maps common language identifiers to lstlisting language names.

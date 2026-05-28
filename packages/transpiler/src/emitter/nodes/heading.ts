@@ -1,5 +1,5 @@
 import type { Heading } from 'mdast';
-import type { NodeEmitter } from '../types';
+import type { NodeEmitter } from '../../types.js';
 
 const DEPTH_MAP: Record<number, string> = {
   1: '\\section',

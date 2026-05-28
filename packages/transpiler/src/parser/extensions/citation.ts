@@ -1,7 +1,7 @@
 import type { Plugin } from 'unified';
 import type { Root, Text, PhrasingContent } from 'mdast';
 import { visit } from 'unist-util-visit';
-import type { CitationNode } from '../types';
+import type { CitationNode } from '../../types.js';
 
 /**
  * Remark plugin that transforms `[@key]` and `[@key1; @key2]` patterns
