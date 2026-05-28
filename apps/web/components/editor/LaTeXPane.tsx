@@ -114,7 +114,7 @@ export function LaTeXPane({ className = '' }: LaTeXPaneProps) {
   return (
     <div className={`latex-pane flex flex-col h-full ${className}`}>
       {/* Pane header */}
-      <div className="pane-header flex items-center justify-between px-4 py-2 border-b border-border flex-shrink-0">
+      <div className="pane-header flex items-center justify-between border-b border-border flex-shrink-0" style={{ padding: '8px 16px' }}>
         <div className="flex items-center gap-2">
           <span className="pane-label">LaTeX Output</span>
           <span className="badge">read-only</span>

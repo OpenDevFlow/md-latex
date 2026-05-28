@@ -87,7 +87,7 @@ export function SplitLayout() {
     return (
       <div ref={containerRef} className="split-layout-2" id="split-layout">
         <div className="pane pane-md" style={{ flex: 1 }}>
-          <div className="pane-header flex items-center px-4 py-2 border-b border-border">
+          <div className="pane-header flex items-center border-b border-border" style={{ padding: '8px 16px' }}>
             <span className="pane-label">Markdown</span>
           </div>
           <div className="pane-body">
@@ -111,7 +111,7 @@ export function SplitLayout() {
   return (
     <div ref={containerRef} className="split-layout-3" id="split-layout">
       <div className="pane pane-md" style={{ width: `${mdPct}%` }}>
-        <div className="pane-header flex items-center px-4 py-2 border-b border-border">
+        <div className="pane-header flex items-center border-b border-border" style={{ padding: '8px 16px' }}>
           <span className="pane-label">Markdown</span>
         </div>
         <div className="pane-body">
