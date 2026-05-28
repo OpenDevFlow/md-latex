@@ -8,13 +8,16 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'LaTeX content is required' }, { status: 400 });
     }
 
-    // Call the external latexonline.cc compiler API
-    const response = await fetch('https://latexonline.cc/compile', {
+    // Call the texlive.net compiler API
+    const formData = new FormData();
+    formData.append('filecontents[]', latex);
+    formData.append('filename[]', 'document.tex');
+    formData.append('engine', 'pdflatex');
+    formData.append('return', 'pdf');
+
+    const response = await fetch('https://texlive.net/cgi-bin/latexcgi', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: new URLSearchParams({ text: latex }),
+      body: formData,
     });
 
     if (!response.ok) {
