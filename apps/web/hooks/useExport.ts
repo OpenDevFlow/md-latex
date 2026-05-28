@@ -34,6 +34,9 @@ export function useExport() {
   }
 
   async function exportPDF(filename = 'document.pdf'): Promise<boolean> {
+    let timeoutId: NodeJS.Timeout | undefined;
+    let cancelPromise: () => void = () => {};
+
     try {
       // Create a modal overlay
       const overlay = document.createElement('div');
@@ -74,7 +77,11 @@ export function useExport() {
       closeBtn.style.borderRadius = '4px';
       closeBtn.style.cursor = 'pointer';
       closeBtn.style.fontWeight = '600';
-      closeBtn.onclick = () => document.body.removeChild(overlay);
+      closeBtn.onclick = () => {
+        if (timeoutId) clearTimeout(timeoutId);
+        document.body.removeChild(overlay);
+        cancelPromise();
+      };
 
       header.appendChild(title);
       header.appendChild(closeBtn);
@@ -138,9 +145,9 @@ export function useExport() {
       iframe.style.opacity = '0';
       iframe.style.transition = 'opacity 0.3s ease';
       
-      let timer: NodeJS.Timeout;
-
       const resultPromise = new Promise<boolean>((resolve, reject) => {
+        cancelPromise = () => reject(new Error('USER_CANCELLED'));
+
         iframe.onload = () => {
           try {
             const href = iframe.contentWindow?.location?.href;
@@ -150,20 +157,20 @@ export function useExport() {
           } catch (_e) {
             // SecurityError means it successfully navigated to the cross-origin texlive.net!
           }
-          clearTimeout(timer);
+          if (timeoutId) clearTimeout(timeoutId);
           loaderContainer.style.display = 'none';
           iframe.style.opacity = '1';
           resolve(true);
         };
 
         iframe.onerror = () => {
-          clearTimeout(timer);
+          if (timeoutId) clearTimeout(timeoutId);
           loaderContainer.style.display = 'none';
           iframe.style.opacity = '1';
           reject(new Error('Failed to load PDF'));
         };
 
-        timer = setTimeout(() => {
+        timeoutId = setTimeout(() => {
           loaderContainer.style.display = 'none';
           iframe.style.opacity = '1';
           reject(new Error('PDF generation timed out'));
@@ -207,6 +214,9 @@ export function useExport() {
       
       return await resultPromise;
     } catch (e) {
+      if (e instanceof Error && e.message === 'USER_CANCELLED') {
+        return false;
+      }
       console.error(e);
       throw new Error('Failed to export PDF');
     }
