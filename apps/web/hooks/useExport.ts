@@ -82,15 +82,72 @@ export function useExport() {
       const iframeName = 'pdf-export-iframe-' + Date.now();
       const iframe = document.createElement('iframe');
       iframe.name = iframeName;
-      iframe.style.width = '90%';
-      iframe.style.maxWidth = '1200px';
-      iframe.style.height = '85vh';
-      iframe.style.border = '1px solid var(--color-border)';
-      iframe.style.borderRadius = '8px';
-      iframe.style.backgroundColor = '#fff';
+      
+      // Wrapper for iframe and loader
+      const iframeWrapper = document.createElement('div');
+      iframeWrapper.style.position = 'relative';
+      iframeWrapper.style.width = '90%';
+      iframeWrapper.style.maxWidth = '1200px';
+      iframeWrapper.style.height = '85vh';
+      iframeWrapper.style.backgroundColor = 'var(--color-surface)';
+      iframeWrapper.style.borderRadius = '8px';
+      iframeWrapper.style.border = '1px solid var(--color-border)';
+      iframeWrapper.style.overflow = 'hidden';
+
+      // Loader UI
+      const loaderContainer = document.createElement('div');
+      loaderContainer.style.position = 'absolute';
+      loaderContainer.style.top = '50%';
+      loaderContainer.style.left = '50%';
+      loaderContainer.style.transform = 'translate(-50%, -50%)';
+      loaderContainer.style.display = 'flex';
+      loaderContainer.style.flexDirection = 'column';
+      loaderContainer.style.alignItems = 'center';
+      loaderContainer.style.gap = '16px';
+      loaderContainer.style.color = 'var(--color-text)';
+      loaderContainer.style.zIndex = '1';
+
+      const spinner = document.createElement('div');
+      spinner.style.width = '40px';
+      spinner.style.height = '40px';
+      spinner.style.border = '3px solid var(--color-surface-3)';
+      spinner.style.borderTopColor = 'var(--color-accent)';
+      spinner.style.borderRadius = '50%';
+      spinner.style.animation = 'spin 1s linear infinite';
+      
+      const loaderText = document.createElement('span');
+      loaderText.innerText = 'Compiling LaTeX...';
+      
+      loaderContainer.appendChild(spinner);
+      loaderContainer.appendChild(loaderText);
+
+      if (!document.getElementById('pdf-loader-style')) {
+        const style = document.createElement('style');
+        style.id = 'pdf-loader-style';
+        style.innerHTML = `@keyframes spin { to { transform: rotate(360deg); } }`;
+        document.head.appendChild(style);
+      }
+
+      // Iframe styling
+      iframe.style.position = 'relative';
+      iframe.style.zIndex = '2';
+      iframe.style.width = '100%';
+      iframe.style.height = '100%';
+      iframe.style.border = 'none';
+      iframe.style.backgroundColor = 'transparent';
+      iframe.style.opacity = '0';
+      iframe.style.transition = 'opacity 0.3s ease';
+      
+      iframe.onload = () => {
+        loaderContainer.style.display = 'none';
+        iframe.style.opacity = '1';
+      };
+
+      iframeWrapper.appendChild(loaderContainer);
+      iframeWrapper.appendChild(iframe);
 
       overlay.appendChild(header);
-      overlay.appendChild(iframe);
+      overlay.appendChild(iframeWrapper);
       document.body.appendChild(overlay);
 
       // Create a hidden form to submit directly to texlive.net targeting the iframe
