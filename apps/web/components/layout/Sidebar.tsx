@@ -18,13 +18,23 @@ function getHeadings(content: string) {
   return headings;
 }
 
-function FileTree({ level, parentId }: { level: number, parentId: string | null }) {
+interface FileTreeProps {
+  level: number;
+  parentId: string | null;
+  editingId: string | null;
+  setEditingId: (id: string | null) => void;
+  editTitle: string;
+  setEditTitle: (title: string) => void;
+}
+
+function FileTree({ level, parentId, editingId, setEditingId, editTitle, setEditTitle }: FileTreeProps) {
   const documents = useEditorStore((s) => s.documents);
   const currentDocId = useEditorStore((s) => s.currentDocId);
   const loadDocument = useEditorStore((s) => s.loadDocument);
   const deleteDocument = useEditorStore((s) => s.deleteDocument);
   const toggleFolder = useEditorStore((s) => s.toggleFolder);
   const moveItem = useEditorStore((s) => s.moveItem);
+  const renameItem = useEditorStore((s) => s.renameItem);
   
   const items = documents.filter(d => (d.parentId || null) === parentId);
   
@@ -81,7 +91,42 @@ function FileTree({ level, parentId }: { level: number, parentId: string | null 
                 </svg>
               )}
               
-              <span className="truncate flex-1">{doc.title || 'Untitled'}</span>
+              {editingId === doc.id ? (
+                <input
+                  autoFocus
+                  className="flex-1 bg-surface border border-accent text-text px-1 text-sm outline-none w-full min-w-0"
+                  value={editTitle}
+                  onChange={(e) => setEditTitle(e.target.value)}
+                  onBlur={() => {
+                    if (editTitle.trim() && editTitle.trim() !== doc.title) {
+                      renameItem(doc.id, editTitle.trim());
+                    }
+                    setEditingId(null);
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      if (editTitle.trim() && editTitle.trim() !== doc.title) {
+                        renameItem(doc.id, editTitle.trim());
+                      }
+                      setEditingId(null);
+                    } else if (e.key === 'Escape') {
+                      setEditingId(null);
+                    }
+                  }}
+                  onClick={(e) => e.stopPropagation()}
+                />
+              ) : (
+                <span 
+                  className="truncate flex-1"
+                  onDoubleClick={(e) => {
+                    e.stopPropagation();
+                    setEditingId(doc.id);
+                    setEditTitle(doc.title);
+                  }}
+                >
+                  {doc.title || 'Untitled'}
+                </span>
+              )}
               <button 
                 className="opacity-0 group-hover:opacity-100 p-1 hover:bg-danger/20 text-danger rounded transition-all"
                 onClick={(e) => {
@@ -97,7 +142,14 @@ function FileTree({ level, parentId }: { level: number, parentId: string | null 
             </div>
             
             {isFolder && doc.isOpen && (
-              <FileTree level={level + 1} parentId={doc.id} />
+              <FileTree 
+                level={level + 1} 
+                parentId={doc.id} 
+                editingId={editingId}
+                setEditingId={setEditingId}
+                editTitle={editTitle}
+                setEditTitle={setEditTitle}
+              />
             )}
           </div>
         );
@@ -116,10 +168,15 @@ export function Sidebar() {
   const newFolder = useEditorStore((s) => s.newFolder);
   const deleteDocument = useEditorStore((s) => s.deleteDocument);
   const moveItem = useEditorStore((s) => s.moveItem);
+  const renameItem = useEditorStore((s) => s.renameItem);
   const content = useEditorStore((s) => s.content);
 
   const [treeExpanded, setTreeExpanded] = useState(true);
   const [outlineExpanded, setOutlineExpanded] = useState(true);
+
+  // Renaming state
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editTitle, setEditTitle] = useState('');
 
   // Extract headings from the current document
   const headings = useMemo(() => getHeadings(content), [content]);
@@ -133,9 +190,9 @@ export function Sidebar() {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  if (!showSidebar || isMobile) return null;
-
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  if (!showSidebar || isMobile) return null;
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -230,7 +287,14 @@ export function Sidebar() {
             {documents.length === 0 ? (
               <div className="text-xs text-text-faint italic px-2">No documents saved.</div>
             ) : (
-              <FileTree level={0} parentId={null} />
+              <FileTree 
+                level={0} 
+                parentId={null} 
+                editingId={editingId}
+                setEditingId={setEditingId}
+                editTitle={editTitle}
+                setEditTitle={setEditTitle}
+              />
             )}
           </div>
         )}

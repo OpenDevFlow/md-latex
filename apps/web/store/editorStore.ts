@@ -128,6 +128,7 @@ interface EditorState {
   newDocument: (parentId?: string | null) => void;
   newFolder: (parentId?: string | null) => void;
   toggleFolder: (id: string) => void;
+  renameItem: (id: string, newTitle: string) => void;
   moveItem: (itemId: string, newParentId: string | null) => void;
   setDocuments: (docs: FileSystemItem[]) => void;
 }
@@ -279,6 +280,14 @@ Start writing your markdown here...`;
         set({
           documents: get().documents.map((d) => 
             d.id === id ? { ...d, isOpen: !d.isOpen } : d
+          )
+        });
+      },
+
+      renameItem: (id, newTitle) => {
+        set({
+          documents: get().documents.map((d) => 
+            d.id === id ? { ...d, title: newTitle, updatedAt: Date.now() } : d
           )
         });
       },
