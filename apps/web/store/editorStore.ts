@@ -128,6 +128,7 @@ interface EditorState {
   newDocument: (parentId?: string | null) => void;
   newFolder: (parentId?: string | null) => void;
   toggleFolder: (id: string) => void;
+  moveItem: (itemId: string, newParentId: string | null) => void;
   setDocuments: (docs: FileSystemItem[]) => void;
 }
 
@@ -278,6 +279,25 @@ Start writing your markdown here...`;
         set({
           documents: get().documents.map((d) => 
             d.id === id ? { ...d, isOpen: !d.isOpen } : d
+          )
+        });
+      },
+
+      moveItem: (itemId, newParentId) => {
+        const store = get();
+        if (itemId === newParentId) return;
+        
+        // Prevent cyclic moves (e.g., moving a folder into its own child)
+        let currentParent = newParentId;
+        while (currentParent) {
+          if (currentParent === itemId) return;
+          const parentDoc = store.documents.find(d => d.id === currentParent);
+          currentParent = parentDoc?.parentId || null;
+        }
+
+        set({
+          documents: store.documents.map((d) => 
+            d.id === itemId ? { ...d, parentId: newParentId } : d
           )
         });
       },
