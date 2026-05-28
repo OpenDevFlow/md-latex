@@ -1,6 +1,28 @@
 @import "tailwindcss";
 @import "katex/dist/katex.min.css";
 
+@theme {
+  --color-bg: var(--color-bg);
+  --color-surface: var(--color-surface);
+  --color-surface-2: var(--color-surface-2);
+  --color-surface-3: var(--color-surface-3);
+  --color-border: var(--color-border);
+  --color-border-2: var(--color-border-2);
+  
+  --color-text: var(--color-text);
+  --color-text-muted: var(--color-text-muted);
+  --color-text-faint: var(--color-text-faint);
+  
+  --color-accent: var(--color-accent);
+  --color-accent-soft: var(--color-accent-soft);
+  --color-accent-glow: var(--color-accent-glow);
+  --color-accent-hover: var(--color-accent-hover);
+  
+  --color-success: var(--color-success);
+  --color-warning: var(--color-warning);
+  --color-danger: var(--color-danger);
+}
+
 /* ═══════════════════════════════════════════════════════════
    DESIGN TOKENS — Dark mode (default)
    ═══════════════════════════════════════════════════════════ */

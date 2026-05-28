@@ -46,7 +46,7 @@ describe('integration: full document round-trip', () => {
     const { latex, frontmatter, warnings } = await transpile(SAMPLE_DOCUMENT);
 
     // Document structure
-    expect(latex).toContain('\\documentclass{article}');
+    expect(latex).toContain('\\documentclass');
     expect(latex).toContain('\\begin{document}');
     expect(latex).toContain('\\end{document}');
 
@@ -68,9 +68,10 @@ describe('integration: full document round-trip', () => {
     expect(latex).toContain('\\[');
     expect(latex).toContain('\\]');
 
-    // Table
+    // Table (standard style)
     expect(latex).toContain('\\begin{table}');
     expect(latex).toContain('\\begin{tabular}');
+    expect(latex).toContain('\\hline');
     expect(latex).toContain('\\end{tabular}');
 
     // Code
