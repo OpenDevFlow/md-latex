@@ -204,7 +204,16 @@ export const useEditorStore = create<EditorState>()(
       },
 
       newDocument: () => {
-        set({ content: DEFAULT_CONTENT, currentDocId: null });
+        const BLANK_CONTENT = `---
+title: New Document
+author: 
+date: \\today
+---
+
+# Introduction
+
+Start writing your markdown here...`;
+        set({ content: BLANK_CONTENT, currentDocId: null });
       },
 
       setDocuments: (docs) => set({ documents: docs }),
