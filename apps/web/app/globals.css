@@ -41,11 +41,11 @@
   --color-text-muted:  #8b949e;
   --color-text-faint:  #484f58;
 
-  /* Accent — Electric Violet */
-  --color-accent:      #7c3aed;
-  --color-accent-soft: #7c3aed30;
-  --color-accent-glow: #7c3aed50;
-  --color-accent-hover:#8b5cf6;
+  /* Accent — Sunset Orange */
+  --color-accent:      #f97316;
+  --color-accent-soft: #f9731630;
+  --color-accent-glow: #f9731650;
+  --color-accent-hover:#fb923c;
 
   /* Status */
   --color-success:     #3fb950;
@@ -58,7 +58,7 @@
 
   /* Resize handle */
   --handle-color:      #21262d;
-  --handle-hover:      #7c3aed;
+  --handle-hover:      #f97316;
 
   /* Scrollbar */
   --scrollbar-track:   #161b22;
@@ -77,7 +77,7 @@
   --prose-body:        #c9d1d9;
   --prose-code-bg:     #1c2128;
   --prose-link:        #79c0ff;
-  --prose-quote-border:#7c3aed;
+  --prose-quote-border:#f97316;
   --prose-quote-text:  #8b949e;
   --prose-hr:          #30363d;
   --prose-table-head:  #161b22;
@@ -99,10 +99,10 @@
   --color-text-muted:  #64748b;
   --color-text-faint:  #94a3b8;
 
-  --color-accent:      #7c3aed;
-  --color-accent-soft: #7c3aed15;
-  --color-accent-glow: #7c3aed25;
-  --color-accent-hover:#6d28d9;
+  --color-accent:      #f97316;
+  --color-accent-soft: #f9731615;
+  --color-accent-glow: #f9731625;
+  --color-accent-hover:#ea580c;
 
   --color-success:     #16a34a;
   --color-warning:     #ca8a04;
@@ -112,7 +112,7 @@
   --toolbar-border:    #e2e8f0;
 
   --handle-color:      #e2e8f0;
-  --handle-hover:      #7c3aed;
+  --handle-hover:      #f97316;
 
   --scrollbar-track:   #f1f5f9;
   --scrollbar-thumb:   #cbd5e1;
@@ -124,8 +124,8 @@
   --prose-heading:     #0f172a;
   --prose-body:        #1e293b;
   --prose-code-bg:     #f1f5f9;
-  --prose-link:        #7c3aed;
-  --prose-quote-border:#7c3aed;
+  --prose-link:        #ea580c;
+  --prose-quote-border:#f97316;
   --prose-quote-text:  #64748b;
   --prose-hr:          #e2e8f0;
   --prose-table-head:  #f8fafc;
