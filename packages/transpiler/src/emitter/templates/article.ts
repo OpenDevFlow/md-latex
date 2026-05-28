@@ -62,36 +62,30 @@ function buildPreamble(
     })
     .join('\n');
 
-  return `% ── Encoding & fonts ──────────────────────────────────────
-\\usepackage[utf8]{inputenc}
+  return `\\usepackage[utf8]{inputenc}
 \\usepackage[T1]{fontenc}
 \\usepackage{lmodern}          % Better font rendering
 
-% ── Page geometry ─────────────────────────────────────────
 \\usepackage[
   top=1in, bottom=1in,
   left=1.25in, right=1.25in,
   headheight=14pt
 ]{geometry}
 
-% ── Mathematics ───────────────────────────────────────────
 \\usepackage{amsmath}
 \\usepackage{amssymb}
 \\usepackage{amsthm}
 \\usepackage{mathtools}
 
-% ── Graphics & floats ─────────────────────────────────────
 \\usepackage{graphicx}
 \\usepackage{float}
 \\usepackage[labelfont=bf, font=small]{caption}
 \\usepackage{subcaption}
 
-% ── Tables ────────────────────────────────────────────────
 \\usepackage{booktabs}
 \\usepackage{array}
 \\usepackage{multirow}
 
-% ── Colors ────────────────────────────────────────────────
 \\usepackage[dvipsnames, table]{xcolor}
 \\definecolor{codegreen}{rgb}{0.13,0.55,0.13}
 \\definecolor{codegray}{rgb}{0.5,0.5,0.5}
@@ -99,7 +93,6 @@ function buildPreamble(
 \\definecolor{codeblue}{rgb}{0.05,0.40,0.70}
 \\definecolor{backcolour}{rgb}{0.97,0.97,0.97}
 
-% ── Code listings ─────────────────────────────────────────
 \\usepackage{listings}
 \\lstset{
   backgroundcolor=\\color{backcolour},
@@ -124,7 +117,6 @@ function buildPreamble(
   xleftmargin=12pt,
 }
 
-% ── Hyperlinks ────────────────────────────────────────────
 \\usepackage[
   colorlinks=true,
   linkcolor=NavyBlue,
@@ -137,18 +129,12 @@ function buildPreamble(
   pdfpagemode=UseOutlines,
 ]{hyperref}
 
-% ── Typography ────────────────────────────────────────────
 \\usepackage{microtype}        % Subtle character protrusion & kerning
 \\usepackage{parskip}          % Paragraph spacing instead of indent
 \\usepackage{setspace}
 
-% ── User packages ─────────────────────────────────────────
 ${extras || '% (none)'}`;
 }
-
-// ──────────────────────────────────────────────────────────
-// Article template
-// ──────────────────────────────────────────────────────────
 
 /**
  * Wraps body content in a complete, publication-ready
@@ -188,10 +174,8 @@ export function articleTemplate(
     '',
     preamble,
     '',
-    `% ── Document metadata ────────────────────────────────────`,
     maketitle,
     abstractBlock,
-    `% ── Body ────────────────────────────────────────────────`,
     body.trim(),
     '',
     `\\end{document}`,
