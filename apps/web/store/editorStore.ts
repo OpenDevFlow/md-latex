@@ -35,60 +35,63 @@ export interface TranspilerOptions {
 // ──────────────────────────────────────────────────────────
 
 export const DEFAULT_CONTENT = `---
-title: My Research Paper
-author: Jane Smith
+title: "The Future of Artificial Intelligence"
+author: 
+  - "Alan Turing"
+  - "Grace Hopper"
 date: \\today
+abstract: "This paper explores the theoretical foundations of artificial intelligence and its practical implications. We discuss the mathematical frameworks underlying neural networks and provide a comprehensive review of recent literature."
 ---
 
 # Introduction
 
-Welcome to **md-latex** — write *Markdown*, get LaTeX.
+Artificial intelligence has seen rapid advancements in recent years, primarily driven by increases in computational power and the availability of large datasets. As noted in early theoretical work [@turing1950], the possibility of machine intelligence has long fascinated computer scientists.
 
-## Mathematical Framework
+## Mathematical Foundations
 
-The quadratic formula is $x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}$.
-
-Display math works too:
+Neural networks are built upon linear algebra and calculus. The activation of a neuron can be modeled as:
 
 $$
-\\int_{-\\infty}^{\\infty} e^{-x^2} \\, dx = \\sqrt{\\pi}
+y = \\sigma\\left(\\sum_{i=1}^{n} w_i x_i + b\\right)
 $$
 
-## Features
+where $w_i$ represents the weights, $x_i$ the inputs, $b$ the bias, and $\\sigma$ the non-linear activation function.
 
-- Real-time transpilation
-- GFM tables → \`tabular\`
-- Math via KaTeX in preview
-- Export to \`.tex\`
+## Recent Advancements
 
-## Code Example
+Deep learning architectures, such as transformers [@vaswani2017], have revolutionized natural language processing. These models rely heavily on the self-attention mechanism, which allows them to capture long-range dependencies in text.
 
-\`\`\`python
-def transpile(markdown: str) -> str:
-    """Convert Markdown to LaTeX."""
-    ast = parse(markdown)
-    return emit(ast)
-\`\`\`
+### Performance Metrics
 
-## Results Table
+| Model | Accuracy | Training Time |
+|-------|----------|---------------|
+| GPT-2 | 85% | 1 week |
+| GPT-3 | 92% | 1 month |
+| GPT-4 | 98% | 3 months |
 
-| Feature       | Supported | Notes              |
-|---------------|-----------|--------------------|
-| Headings      | ✓         | H1–H6 mapping      |
-| Math          | ✓         | KaTeX preview      |
-| Tables        | ✓         | GFM tabular        |
-| Citations     | ✓         | [@key] syntax      |
+# Conclusion
 
-> "Mathematics is the language in which God has written the universe." — Galileo
-
-See [@galilei1623] for the original quote.
-
----
-
-1. Write Markdown
-2. Get LaTeX
-3. Publish your paper
+The rapid progress in AI requires careful consideration of ethical implications alongside technical development. We anticipate further breakthroughs in the coming decade, building upon the foundational work established in the late 20th century.
 `;
+
+export const DEFAULT_BIB_CONTENT = `@article{turing1950,
+  title={Computing machinery and intelligence},
+  author={Turing, Alan M},
+  journal={Mind},
+  volume={59},
+  number={236},
+  pages={433--460},
+  year={1950},
+  publisher={JSTOR}
+}
+
+@inproceedings{vaswani2017,
+  title={Attention is all you need},
+  author={Vaswani, Ashish and Shazeer, Noam and Parmar, Niki and Uszkoreit, Jakob and Jones, Llion and Gomez, Aidan N and Kaiser, Lukasz and Polosukhin, Illia},
+  booktitle={Advances in neural information processing systems},
+  pages={5998--6008},
+  year={2017}
+}`;
 
 // ──────────────────────────────────────────────────────────
 // Store
@@ -150,13 +153,30 @@ export const useEditorStore = create<EditorState>()(
       content: DEFAULT_CONTENT,
       latex: '',
       preview: '',
-      transpilerOptions: DEFAULT_TRANSPILER_OPTIONS,
+      transpilerOptions: { ...DEFAULT_TRANSPILER_OPTIONS, bibliographyId: 'default-bib-id' },
       layout: '3-pane',
       activePane: 'md',
       theme: 'dark',
       showSidebar: true,
-      documents: [],
-      currentDocId: null,
+      documents: [
+        {
+          id: 'default-doc-id',
+          title: 'Future of AI.md',
+          content: DEFAULT_CONTENT,
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
+          type: 'file',
+        },
+        {
+          id: 'default-bib-id',
+          title: 'references.bib',
+          content: DEFAULT_BIB_CONTENT,
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
+          type: 'file',
+        }
+      ],
+      currentDocId: 'default-doc-id',
 
       // Content actions
       setContent: (content) => set({ content }),
