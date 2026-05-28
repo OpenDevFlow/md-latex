@@ -22,3 +22,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Fixed Turbopack CSS caching issues on Next.js 15 by converting critical layout padding to inline styles.
 - Standardized typography across the application to utilize the `Inter` font family.
+- Resolved scroll synchronization flickering and jittering in the LaTeX and HTML Preview panes during active typing.
