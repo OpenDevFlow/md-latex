@@ -35,31 +35,39 @@ export function useExport() {
 
   async function exportPDF(filename = 'document.pdf'): Promise<boolean> {
     try {
-      const res = await fetch('/api/export/pdf', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ latex }),
-      });
-      if (!res.ok) {
-        let msg = 'PDF compilation failed';
-        try {
-          const data = await res.json();
-          if (data.details) msg += ':\n\n' + data.details.substring(0, 300) + '...';
-        } catch {}
-        throw new Error(msg);
+      // Create a hidden form to submit directly to texlive.net
+      // This bypasses CORS and works natively in static Next.js exports
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = 'https://texlive.net/cgi-bin/latexcgi';
+      form.target = '_blank'; // Open download in new tab
+      form.style.display = 'none';
+
+      const fields = {
+        'filecontents[]': latex,
+        'filename[]': filename.replace('.pdf', '.tex'),
+        'engine': 'xelatex',
+        'return': 'pdf',
+      };
+
+      for (const [key, value] of Object.entries(fields)) {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = key;
+        input.value = value;
+        form.appendChild(input);
       }
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = filename;
-      a.click();
-      URL.revokeObjectURL(url);
+
+      document.body.appendChild(form);
+      form.submit();
+      
+      // Cleanup
+      setTimeout(() => document.body.removeChild(form), 100);
+      
       return true;
     } catch (e: any) {
       console.error(e);
-      alert(e.message || 'Failed to export PDF. Ensure your LaTeX code has no errors.');
-      return false;
+      throw new Error('Failed to export PDF');
     }
   }
 
