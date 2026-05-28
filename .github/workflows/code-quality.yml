@@ -29,5 +29,5 @@ jobs:
       run: pnpm install --frozen-lockfile
 
     - name: Check formatting and lint rules
-      # This runs ESLint across the turborepo if a `lint` script exists
+      # This runs ESLint unconditionally across the turborepo (all packages define scripts.lint)
       run: pnpm run lint
