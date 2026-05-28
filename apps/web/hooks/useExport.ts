@@ -33,5 +33,28 @@ export function useExport() {
     downloadBlob(content, filename, 'text/markdown');
   }
 
-  return { copyLatex, downloadLatex, downloadMarkdown };
+  async function exportPDF(filename = 'document.pdf'): Promise<boolean> {
+    try {
+      const res = await fetch('/api/export/pdf', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ latex }),
+      });
+      if (!res.ok) throw new Error('PDF compilation failed');
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(url);
+      return true;
+    } catch (e) {
+      console.error(e);
+      alert('Failed to export PDF. Ensure your LaTeX code has no errors.');
+      return false;
+    }
+  }
+
+  return { copyLatex, downloadLatex, downloadMarkdown, exportPDF };
 }
