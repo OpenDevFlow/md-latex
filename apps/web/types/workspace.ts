@@ -4,53 +4,75 @@ import type { FileSystemItem, LayoutMode, Theme, TranspilerOptions } from '@/sto
 // Version
 // ──────────────────────────────────────────────────────────
 
-/**
- * Increment this when the WorkspaceArtifact shape changes in a
- * breaking way.  A migration must be added to migrations.ts for
- * every version bump.
- */
-export const WORKSPACE_FORMAT_VERSION = 1;
+export const WORKSPACE_FORMAT_VERSION = 2;
 
 // ──────────────────────────────────────────────────────────
-// Artifact shape
+// Sensitive payload (encrypted when password-protected)
+// ──────────────────────────────────────────────────────────
+
+export interface WorkspacePayload {
+  documents: FileSystemItem[];
+  currentDocId: string | null;
+  content: string;
+  transpilerOptions: TranspilerOptions;
+}
+
+// ──────────────────────────────────────────────────────────
+// Artifact shape (v2)
 // ──────────────────────────────────────────────────────────
 
 export interface WorkspaceArtifact {
-  /** Schema version — used to drive the migration chain. */
+  /** Schema version — drives the migration chain. */
   version: number;
 
-  /** ISO-8601 timestamp of when the artifact was created. */
+  /** ISO-8601 timestamp of creation. */
   exportedAt: string;
 
-  /**
-   * Human-readable label shown in the import confirmation dialog.
-   * Defaults to the filename stem (e.g. "my-thesis").
-   */
+  /** Human-readable name shown in the import dialog. */
   label: string;
 
-  // ── Persisted editor slices ──────────────────────────────
+  /** Optional description / notes. */
+  description: string;
 
-  /** The full virtual file tree, including folders and .bib files. */
-  documents: FileSystemItem[];
+  /** User-defined tags for organisation. */
+  tags: string[];
 
-  /** ID of the document that was open at export time. */
-  currentDocId: string | null;
+  /** Total word count across all documents at export time. */
+  wordCount: number;
 
-  /**
-   * Raw content of the active document at export time.
-   * May differ from the saved document if the user had unsaved edits.
-   */
-  content: string;
+  /** Whether the sensitive payload is AES-GCM encrypted. */
+  encrypted: boolean;
 
-  /** LaTeX render settings. */
-  transpilerOptions: TranspilerOptions;
+  // ── Plaintext metadata (always present, even when encrypted) ──
 
-  /** Editor layout at export time. */
   layout: LayoutMode;
-
-  /** UI theme at export time. */
   theme: Theme;
-
-  /** Whether the sidebar was visible at export time. */
   showSidebar: boolean;
+
+  // ── Unencrypted payload (present when encrypted = false) ──
+
+  documents?: FileSystemItem[];
+  currentDocId?: string | null;
+  content?: string;
+  transpilerOptions?: TranspilerOptions;
+
+  // ── Encrypted payload (present when encrypted = true) ──
+
+  /** Base64-encoded AES-GCM ciphertext of WorkspacePayload JSON. */
+  ciphertext?: string;
+  /** Base64-encoded 12-byte AES-GCM IV. */
+  iv?: string;
+  /** Base64-encoded 16-byte PBKDF2 salt. */
+  salt?: string;
+}
+
+// ──────────────────────────────────────────────────────────
+// Saved workspace entry (for the workspace switcher)
+// ──────────────────────────────────────────────────────────
+
+export interface SavedWorkspace {
+  id: string;
+  name: string;
+  savedAt: string;
+  artifact: WorkspaceArtifact;
 }
