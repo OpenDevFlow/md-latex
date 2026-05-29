@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useEditorStore } from '@/store/editorStore';
 import { useExport } from '@/hooks/useExport';
+import { useWorkspace } from '@/hooks/useWorkspace';
 import { SettingsModal } from '@/components/editor/SettingsModal';
 
 
@@ -17,11 +18,16 @@ export function Toolbar() {
   const currentDocId = useEditorStore((s) => s.currentDocId);
   const toggleSidebar = useEditorStore((s) => s.toggleSidebar);
   const { copyLatex, downloadLatex, exportPDF } = useExport();
+  const { importInputRef, exportWorkspace, openImportPicker, handleImportFile } = useWorkspace();
 
   const [showExportMenu, setShowExportMenu] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [docTitle, setDocTitle] = useState('');
   const [copied, setCopied] = useState(false);
+  const [importStatus, setImportStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [importError, setImportError] = useState('');
+  const [showImportConfirm, setShowImportConfirm] = useState(false);
+  const pendingImportFile = useRef<File | null>(null);
 
   const currentDoc = documents.find((d) => d.id === currentDocId);
 
@@ -36,6 +42,30 @@ export function Toolbar() {
     if (ok) {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
+    }
+  }
+
+  function handleImportChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    pendingImportFile.current = file;
+    setShowImportConfirm(true);
+    // Reset the input so the same file can be re-selected
+    e.target.value = '';
+  }
+
+  async function confirmImport() {
+    setShowImportConfirm(false);
+    if (!pendingImportFile.current) return;
+    const result = await handleImportFile(pendingImportFile.current);
+    pendingImportFile.current = null;
+    if (result.ok) {
+      setImportStatus('success');
+      setTimeout(() => setImportStatus('idle'), 3000);
+    } else {
+      setImportError(result.error);
+      setImportStatus('error');
+      setTimeout(() => setImportStatus('idle'), 5000);
     }
   }
 
@@ -164,6 +194,40 @@ export function Toolbar() {
                   </div>
                   <span className="font-medium">Export to PDF</span>
                 </button>
+
+                <div className="h-px bg-border my-1 mx-2" />
+
+                {/* Workspace export */}
+                <button
+                  className="w-full text-left rounded-lg text-sm text-text hover:bg-accent hover:text-white transition-all flex items-center group"
+                  style={{ padding: '8px 12px', gap: '12px' }}
+                  role="menuitem"
+                  onClick={() => { exportWorkspace(); setShowExportMenu(false); }}
+                >
+                  <div className="bg-surface-2 group-hover:bg-white/20 rounded-md transition-colors text-text group-hover:text-white" style={{ padding: '6px' }}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                  </div>
+                  <div>
+                    <span className="font-medium">Export Workspace</span>
+                    <p style={{ fontSize: '11px', opacity: 0.6, marginTop: '1px' }}>Download .mdlatex bundle</p>
+                  </div>
+                </button>
+
+                {/* Workspace import */}
+                <button
+                  className="w-full text-left rounded-lg text-sm text-text hover:bg-accent hover:text-white transition-all flex items-center group"
+                  style={{ padding: '8px 12px', gap: '12px' }}
+                  role="menuitem"
+                  onClick={() => { openImportPicker(); setShowExportMenu(false); }}
+                >
+                  <div className="bg-surface-2 group-hover:bg-white/20 rounded-md transition-colors text-text group-hover:text-white" style={{ padding: '6px' }}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                  </div>
+                  <div>
+                    <span className="font-medium">Import Workspace</span>
+                    <p style={{ fontSize: '11px', opacity: 0.6, marginTop: '1px' }}>Load from .mdlatex file</p>
+                  </div>
+                </button>
               </div>
             </div>
           )}
@@ -209,6 +273,84 @@ export function Toolbar() {
 
       {showSettings && (
         <SettingsModal onClose={() => setShowSettings(false)} />
+      )}
+
+      {/* Hidden file input for workspace import */}
+      <input
+        ref={importInputRef}
+        type="file"
+        accept=".mdlatex,application/json"
+        style={{ display: 'none' }}
+        onChange={handleImportChange}
+        aria-hidden="true"
+      />
+
+      {/* Import confirmation dialog */}
+      {showImportConfirm && (
+        <div
+          style={{
+            position: 'fixed', inset: 0, zIndex: 1000,
+            backgroundColor: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}
+        >
+          <div
+            style={{
+              backgroundColor: 'var(--color-surface)',
+              border: '1px solid var(--color-border)',
+              borderRadius: '16px', padding: '28px', maxWidth: '420px', width: '90%',
+              boxShadow: '0 24px 64px rgba(0,0,0,0.5)',
+            }}
+          >
+            <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 600, color: 'var(--color-text)' }}>
+              Import Workspace
+            </h3>
+            <p style={{ marginTop: '12px', fontSize: '14px', color: 'var(--color-text)', lineHeight: 1.6, opacity: 0.85 }}>
+              This will replace your current workspace with the contents of{' '}
+              <strong style={{ color: 'var(--color-text)', opacity: 1 }}>{pendingImportFile.current?.name}</strong>.
+              {' '}Any unsaved changes will be lost.
+            </p>
+            <div style={{ display: 'flex', gap: '10px', marginTop: '24px', justifyContent: 'flex-end' }}>
+              <button
+                className="toolbar-btn secondary"
+                onClick={() => { setShowImportConfirm(false); pendingImportFile.current = null; }}
+              >
+                Cancel
+              </button>
+              <button className="toolbar-btn primary" onClick={confirmImport}>
+                Replace Workspace
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Status toast */}
+      {importStatus !== 'idle' && (
+        <div
+          style={{
+            position: 'fixed', bottom: '24px', left: '50%', transform: 'translateX(-50%)',
+            zIndex: 1001, borderRadius: '10px', padding: '12px 20px',
+            backgroundColor: importStatus === 'success' ? 'var(--color-accent)' : '#dc2626',
+            color: '#fff', fontSize: '14px', fontWeight: 500,
+            boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+            display: 'flex', alignItems: 'center', gap: '10px',
+          }}
+          role="status"
+          aria-live="polite"
+        >
+          {importStatus === 'success' ? (
+            <>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+              Workspace imported successfully
+            </>
+          ) : (
+            <>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+              {importError}
+            </>
+          )}
+        </div>
       )}
     </header>
   );
