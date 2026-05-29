@@ -1,6 +1,6 @@
 {
   "name": "@md-latex/transpiler",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Framework-agnostic Markdown to LaTeX transpiler",
   "type": "module",
   "source": "./src/index.ts",
