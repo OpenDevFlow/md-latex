@@ -5,6 +5,9 @@ import { useEditorStore } from '@/store/editorStore';
 import { useExport } from '@/hooks/useExport';
 import { useWorkspace } from '@/hooks/useWorkspace';
 import { SettingsModal } from '@/components/editor/SettingsModal';
+import { PasswordModal } from '@/components/workspace/PasswordModal';
+import { ShareUrlModal } from '@/components/workspace/ShareUrlModal';
+import { WorkspaceDiffModal } from '@/components/workspace/WorkspaceDiffModal';
 
 
 export function Toolbar() {
@@ -18,16 +21,26 @@ export function Toolbar() {
   const currentDocId = useEditorStore((s) => s.currentDocId);
   const toggleSidebar = useEditorStore((s) => s.toggleSidebar);
   const { copyLatex, downloadLatex, exportPDF } = useExport();
-  const { importInputRef, exportWorkspace, openImportPicker, handleImportFile } = useWorkspace();
+  const { importInputRef, exportWorkspace, exportWithPassword, exportAsZipFile, openImportPicker, handleImportFile, shareViaUrl } = useWorkspace();
 
   const [showExportMenu, setShowExportMenu] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [docTitle, setDocTitle] = useState('');
   const [copied, setCopied] = useState(false);
+
+  // Import flow
   const [importStatus, setImportStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [importError, setImportError] = useState('');
-  const [showImportConfirm, setShowImportConfirm] = useState(false);
+  const [showDiffModal, setShowDiffModal] = useState(false);
+  const [showPasswordEnter, setShowPasswordEnter] = useState(false);
   const pendingImportFile = useRef<File | null>(null);
+
+  // Export with password
+  const [showPasswordSet, setShowPasswordSet] = useState(false);
+  const [passwordExportTarget, setPasswordExportTarget] = useState<'file' | 'url'>('file');
+
+  // Share via URL
+  const [shareResult, setShareResult] = useState<{ url: string; warning?: string; protected: boolean } | null>(null);
 
   const currentDoc = documents.find((d) => d.id === currentDocId);
 
@@ -49,23 +62,44 @@ export function Toolbar() {
     const file = e.target.files?.[0];
     if (!file) return;
     pendingImportFile.current = file;
-    setShowImportConfirm(true);
-    // Reset the input so the same file can be re-selected
+    setShowDiffModal(true);
     e.target.value = '';
   }
 
-  async function confirmImport() {
-    setShowImportConfirm(false);
+  async function runImport(passphrase?: string) {
     if (!pendingImportFile.current) return;
-    const result = await handleImportFile(pendingImportFile.current);
-    pendingImportFile.current = null;
+    const result = await handleImportFile(pendingImportFile.current, passphrase);
     if (result.ok) {
+      pendingImportFile.current = null;
       setImportStatus('success');
       setTimeout(() => setImportStatus('idle'), 3000);
+    } else if (!result.ok && result.needsPassword) {
+      setShowPasswordEnter(true);
     } else {
+      pendingImportFile.current = null;
       setImportError(result.error);
       setImportStatus('error');
       setTimeout(() => setImportStatus('idle'), 5000);
+    }
+  }
+
+  async function handlePasswordExport(passphrase: string) {
+    setShowPasswordSet(false);
+    if (passwordExportTarget === 'file') {
+      await exportWithPassword(passphrase);
+    } else {
+      const result = await shareViaUrl(passphrase);
+      if (result.ok && result.url) {
+        setShareResult({ url: result.url, warning: result.warning, protected: true });
+      }
+    }
+  }
+
+  async function handleShareUrl() {
+    setShowExportMenu(false);
+    const result = await shareViaUrl();
+    if (result.ok && result.url) {
+      setShareResult({ url: result.url, warning: result.warning, protected: false });
     }
   }
 
@@ -197,20 +231,34 @@ export function Toolbar() {
 
                 <div className="h-px bg-border my-1 mx-2" />
 
-                {/* Workspace export */}
-                <button
-                  className="w-full text-left rounded-lg text-sm text-text hover:bg-accent hover:text-white transition-all flex items-center group"
-                  style={{ padding: '8px 12px', gap: '12px' }}
-                  role="menuitem"
-                  onClick={() => { exportWorkspace(); setShowExportMenu(false); }}
-                >
-                  <div className="bg-surface-2 group-hover:bg-white/20 rounded-md transition-colors text-text group-hover:text-white" style={{ padding: '6px' }}>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                  </div>
-                  <div>
-                    <span className="font-medium">Export Workspace</span>
-                    <p style={{ fontSize: '11px', opacity: 0.6, marginTop: '1px' }}>Download .mdlatex bundle</p>
-                  </div>
+                {/* Export Workspace (plain) */}
+                <button className="w-full text-left rounded-lg text-sm text-text hover:bg-accent hover:text-white transition-all flex items-center group" style={{ padding: '8px 12px', gap: '12px' }} role="menuitem" onClick={() => { exportWorkspace(); setShowExportMenu(false); }}>
+                  <div className="bg-surface-2 group-hover:bg-white/20 rounded-md transition-colors text-text group-hover:text-white" style={{ padding: '6px' }}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div>
+                  <div><span className="font-medium">Export Workspace</span><p style={{ fontSize: '11px', opacity: 0.6, marginTop: '1px' }}>Download .mdlatex bundle</p></div>
+                </button>
+
+                {/* Export with password */}
+                <button className="w-full text-left rounded-lg text-sm text-text hover:bg-accent hover:text-white transition-all flex items-center group" style={{ padding: '8px 12px', gap: '12px' }} role="menuitem" onClick={() => { setPasswordExportTarget('file'); setShowPasswordSet(true); setShowExportMenu(false); }}>
+                  <div className="bg-surface-2 group-hover:bg-white/20 rounded-md transition-colors text-text group-hover:text-white" style={{ padding: '6px' }}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
+                  <div><span className="font-medium">Export with Password</span><p style={{ fontSize: '11px', opacity: 0.6, marginTop: '1px' }}>AES-256 encrypted .mdlatex</p></div>
+                </button>
+
+                {/* Export as ZIP */}
+                <button className="w-full text-left rounded-lg text-sm text-text hover:bg-accent hover:text-white transition-all flex items-center group" style={{ padding: '8px 12px', gap: '12px' }} role="menuitem" onClick={() => { exportAsZipFile(); setShowExportMenu(false); }}>
+                  <div className="bg-surface-2 group-hover:bg-white/20 rounded-md transition-colors text-text group-hover:text-white" style={{ padding: '6px' }}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/><path d="M9 6h2v2H9zm2 2h2v2h-2zm-2 2h2v2H9z"/></svg></div>
+                  <div><span className="font-medium">Export as ZIP</span><p style={{ fontSize: '11px', opacity: 0.6, marginTop: '1px' }}>Individual .md and .bib files</p></div>
+                </button>
+
+                {/* Share via URL */}
+                <button className="w-full text-left rounded-lg text-sm text-text hover:bg-accent hover:text-white transition-all flex items-center group" style={{ padding: '8px 12px', gap: '12px' }} role="menuitem" onClick={handleShareUrl}>
+                  <div className="bg-surface-2 group-hover:bg-white/20 rounded-md transition-colors text-text group-hover:text-white" style={{ padding: '6px' }}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg></div>
+                  <div><span className="font-medium">Share via URL</span><p style={{ fontSize: '11px', opacity: 0.6, marginTop: '1px' }}>Compressed link, no server</p></div>
+                </button>
+
+                {/* Share via URL + password */}
+                <button className="w-full text-left rounded-lg text-sm text-text hover:bg-accent hover:text-white transition-all flex items-center group" style={{ padding: '8px 12px', gap: '12px' }} role="menuitem" onClick={() => { setPasswordExportTarget('url'); setShowPasswordSet(true); setShowExportMenu(false); }}>
+                  <div className="bg-surface-2 group-hover:bg-white/20 rounded-md transition-colors text-text group-hover:text-white" style={{ padding: '6px' }}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/><rect x="10" y="9" width="4" height="6" rx="1"/></svg></div>
+                  <div><span className="font-medium">Share via URL + Password</span><p style={{ fontSize: '11px', opacity: 0.6, marginTop: '1px' }}>Encrypted shareable link</p></div>
                 </button>
 
                 {/* Workspace import */}
@@ -285,44 +333,42 @@ export function Toolbar() {
         aria-hidden="true"
       />
 
-      {/* Import confirmation dialog */}
-      {showImportConfirm && (
-        <div
-          style={{
-            position: 'fixed', inset: 0, zIndex: 1000,
-            backgroundColor: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-          }}
-        >
-          <div
-            style={{
-              backgroundColor: 'var(--color-surface)',
-              border: '1px solid var(--color-border)',
-              borderRadius: '16px', padding: '28px', maxWidth: '420px', width: '90%',
-              boxShadow: '0 24px 64px rgba(0,0,0,0.5)',
-            }}
-          >
-            <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 600, color: 'var(--color-text)' }}>
-              Import Workspace
-            </h3>
-            <p style={{ marginTop: '12px', fontSize: '14px', color: 'var(--color-text)', lineHeight: 1.6, opacity: 0.85 }}>
-              This will replace your current workspace with the contents of{' '}
-              <strong style={{ color: 'var(--color-text)', opacity: 1 }}>{pendingImportFile.current?.name}</strong>.
-              {' '}Any unsaved changes will be lost.
-            </p>
-            <div style={{ display: 'flex', gap: '10px', marginTop: '24px', justifyContent: 'flex-end' }}>
-              <button
-                className="toolbar-btn secondary"
-                onClick={() => { setShowImportConfirm(false); pendingImportFile.current = null; }}
-              >
-                Cancel
-              </button>
-              <button className="toolbar-btn primary" onClick={confirmImport}>
-                Replace Workspace
-              </button>
-            </div>
-          </div>
-        </div>
+      {/* Workspace diff / cherry-pick modal */}
+      {showDiffModal && pendingImportFile.current && (
+        <WorkspaceDiffModal
+          incoming={{ version: 2, exportedAt: '', label: pendingImportFile.current.name, description: '', tags: [], wordCount: 0, encrypted: false, documents: [], currentDocId: null, content: '', transpilerOptions: undefined as never, layout: '3-pane', theme: 'dark', showSidebar: true }}
+          currentDocs={documents}
+          onCancel={() => { setShowDiffModal(false); pendingImportFile.current = null; }}
+          onConfirm={() => { setShowDiffModal(false); runImport(); }}
+        />
+      )}
+
+      {/* Password modal — enter (import encrypted) */}
+      {showPasswordEnter && (
+        <PasswordModal
+          mode="enter"
+          onConfirm={(p) => { setShowPasswordEnter(false); runImport(p); }}
+          onCancel={() => { setShowPasswordEnter(false); pendingImportFile.current = null; }}
+        />
+      )}
+
+      {/* Password modal — set (export encrypted / share with password) */}
+      {showPasswordSet && (
+        <PasswordModal
+          mode="set"
+          onConfirm={handlePasswordExport}
+          onCancel={() => setShowPasswordSet(false)}
+        />
+      )}
+
+      {/* Share URL result modal */}
+      {shareResult && (
+        <ShareUrlModal
+          url={shareResult.url}
+          warning={shareResult.warning}
+          isPasswordProtected={shareResult.protected}
+          onClose={() => setShareResult(null)}
+        />
       )}
 
       {/* Status toast */}
