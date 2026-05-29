@@ -1,5 +1,9 @@
 # md-latex
 
+<p align="center">
+  <img src="./.github/res/md-latex-banner.png" alt="md-latex banner" width="100%">
+</p>
+
 > **Real-time Markdown to LaTeX converter with live preview — write what you know, output what you need.**
 
 `md-latex` is a powerful, modern web application that bridges the gap between the simplicity of Markdown and the typographical excellence of LaTeX. Write your documents, academic papers, or notes in intuitive Markdown, and instantly see both the compiled HTML preview and the production-ready LaTeX source code.
