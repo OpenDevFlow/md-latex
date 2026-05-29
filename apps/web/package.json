@@ -33,7 +33,7 @@
     "rehype-stringify": "^10.0.1",
     "remark-rehype": "^11.1.2",
     "unified": "^11.0.5",
-    "zustand": "^5.0.13"
+    "zustand": "^5.0.14"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
