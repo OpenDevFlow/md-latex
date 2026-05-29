@@ -18,6 +18,20 @@ export const metadata: Metadata = {
     title: 'md-latex - Markdown to LaTeX Editor',
     description: 'Real-time Markdown to LaTeX transpiler with live preview.',
     type: 'website',
+    images: [
+      {
+        url: '/md-latex-banner.png',
+        width: 1280,
+        height: 640,
+        alt: 'md-latex banner',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'md-latex - Markdown to LaTeX Editor',
+    description: 'Real-time Markdown to LaTeX transpiler with live preview.',
+    images: ['/md-latex-banner.png'],
   },
 };
 
