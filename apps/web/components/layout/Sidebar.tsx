@@ -2,6 +2,8 @@
 
 import React, { useMemo, useState, useEffect, useRef } from 'react';
 import { useEditorStore } from '@/store/editorStore';
+import { WorkspaceSwitcherPanel } from '@/components/workspace/WorkspaceSwitcherPanel';
+import { WorkspaceHistoryPanel } from '@/components/workspace/WorkspaceHistoryPanel';
 
 function getHeadings(content: string) {
   const lines = content.split('\n');
@@ -348,6 +350,59 @@ export function Sidebar() {
           </div>
         )}
       </div>
+
+      <div className="sidebar-divider" />
+
+      {/* Workspaces Section */}
+      <WorkspacesSidebarSection />
+    </div>
+  );
+}
+
+function WorkspacesSidebarSection() {
+  const [expanded, setExpanded] = useState(false);
+  const [tab, setTab] = useState<'saved' | 'history'>('saved');
+
+  return (
+    <div className="sidebar-section" style={{ flexShrink: 0 }}>
+      <div className="sidebar-header">
+        <button
+          className="flex items-center gap-2 flex-1"
+          onClick={() => setExpanded(!expanded)}
+        >
+          <svg
+            className={`transition-transform ${expanded ? '' : '-rotate-90'}`}
+            width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+          >
+            <polyline points="6 9 12 15 18 9" />
+          </svg>
+          <span className="font-semibold text-sm">Workspaces</span>
+        </button>
+      </div>
+
+      {expanded && (
+        <div>
+          {/* Tabs */}
+          <div style={{ display: 'flex', borderBottom: '1px solid var(--color-border)', marginBottom: '4px' }}>
+            {(['saved', 'history'] as const).map((t) => (
+              <button
+                key={t}
+                onClick={() => setTab(t)}
+                style={{
+                  flex: 1, padding: '7px 0', fontSize: '12px', fontWeight: 600,
+                  background: 'none', border: 'none', cursor: 'pointer', transition: 'color 0.15s',
+                  color: tab === t ? 'var(--color-accent)' : 'var(--color-text-muted)',
+                  borderBottom: tab === t ? '2px solid var(--color-accent)' : '2px solid transparent',
+                }}
+              >
+                {t === 'saved' ? 'Saved' : 'History'}
+              </button>
+            ))}
+          </div>
+
+          {tab === 'saved' ? <WorkspaceSwitcherPanel /> : <WorkspaceHistoryPanel />}
+        </div>
+      )}
     </div>
   );
 }
