@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-05-29
+
 ### Added
 - Implemented 3-pane scroll synchronization across Markdown, LaTeX, and HTML Preview using AST source mapping.
 - Integrated `texlive.net` PDF export via an iframe POST method to bypass CORS restrictions.
