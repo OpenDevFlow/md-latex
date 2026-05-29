@@ -1,0 +1,16 @@
+coverage:
+  status:
+    project:
+      default:
+        # basic
+        target: auto
+        threshold: 1%
+    patch:
+      default:
+        target: auto
+        threshold: 1%
+
+comment:
+  layout: "header, diff, changes, sunburst, tree"
+  behavior: default
+  require_changes: false
