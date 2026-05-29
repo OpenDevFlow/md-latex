@@ -1,10 +1,18 @@
 # md-latex
 
 <p align="center">
+  <a href="https://github.com/OpenDevFlow/md-latex/actions/workflows/code-quality.yml"><img src="https://github.com/OpenDevFlow/md-latex/actions/workflows/code-quality.yml/badge.svg" alt="Code Quality"></a>
+  <a href="https://github.com/OpenDevFlow/md-latex/actions/workflows/codeql.yml"><img src="https://github.com/OpenDevFlow/md-latex/actions/workflows/codeql.yml/badge.svg" alt="CodeQL Security"></a>
+  <a href="https://github.com/OpenDevFlow/md-latex/actions/workflows/test.yml"><img src="https://github.com/OpenDevFlow/md-latex/actions/workflows/test.yml/badge.svg" alt="Tests"></a>
+  <a href="https://github.com/OpenDevFlow/md-latex/actions/workflows/deploy.yml"><img src="https://github.com/OpenDevFlow/md-latex/actions/workflows/deploy.yml/badge.svg" alt="Deploy"></a>
+  <a href="https://github.com/OpenDevFlow/md-latex/actions/workflows/release.yml"><img src="https://github.com/OpenDevFlow/md-latex/actions/workflows/release.yml/badge.svg" alt="Release"></a>
+</p>
+
+<p align="center">
   <img src="./.github/res/md-latex-banner.png" alt="md-latex banner" width="100%">
 </p>
 
-> **Real-time Markdown to LaTeX converter with live preview — write what you know, output what you need.**
+> **Real-time Markdown to LaTeX converter with live preview - write what you know, output what you need.**
 
 `md-latex` is a powerful, modern web application that bridges the gap between the simplicity of Markdown and the typographical excellence of LaTeX. Write your documents, academic papers, or notes in intuitive Markdown, and instantly see both the compiled HTML preview and the production-ready LaTeX source code.
 
@@ -94,4 +102,4 @@ The source mapping from both the LaTeX transpilation and the HTML tagging enable
 
 ## License
 
-This project is open-source and available under the [MIT License](LICENSE).
+This project is open-source and available under the [Apache License 2.0](LICENSE).
