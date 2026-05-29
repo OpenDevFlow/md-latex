@@ -21,7 +21,7 @@ export const metadata: Metadata = {
     type: 'website',
     images: [
       {
-        url: '/md-latex-banner.png',
+        url: 'md-latex-banner.png',
         width: 1280,
         height: 640,
         alt: 'md-latex banner',
@@ -32,7 +32,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'md-latex - Markdown to LaTeX Editor',
     description: 'Real-time Markdown to LaTeX transpiler with live preview.',
-    images: ['/md-latex-banner.png'],
+    images: ['md-latex-banner.png'],
   },
 };
 
