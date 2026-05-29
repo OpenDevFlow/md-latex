@@ -19,6 +19,11 @@
       "inputs": ["src/**", "tests/**"],
       "outputs": ["coverage/**"]
     },
+    "test:coverage": {
+      "dependsOn": ["^build", "build"],
+      "inputs": ["src/**", "tests/**"],
+      "outputs": ["coverage/**"]
+    },
     "clean": {
       "cache": false
     },

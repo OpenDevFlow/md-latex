@@ -4,6 +4,7 @@
   <a href="https://github.com/OpenDevFlow/md-latex/actions/workflows/code-quality.yml"><img src="https://github.com/OpenDevFlow/md-latex/actions/workflows/code-quality.yml/badge.svg" alt="Code Quality"></a>
   <a href="https://github.com/OpenDevFlow/md-latex/actions/workflows/codeql.yml"><img src="https://github.com/OpenDevFlow/md-latex/actions/workflows/codeql.yml/badge.svg" alt="CodeQL Security"></a>
   <a href="https://github.com/OpenDevFlow/md-latex/actions/workflows/test.yml"><img src="https://github.com/OpenDevFlow/md-latex/actions/workflows/test.yml/badge.svg" alt="Tests"></a>
+  <a href="https://codecov.io/gh/OpenDevFlow/md-latex"><img src="https://codecov.io/gh/OpenDevFlow/md-latex/graph/badge.svg" alt="Codecov"></a>
   <a href="https://github.com/OpenDevFlow/md-latex/actions/workflows/deploy.yml"><img src="https://github.com/OpenDevFlow/md-latex/actions/workflows/deploy.yml/badge.svg" alt="Deploy"></a>
   <a href="https://github.com/OpenDevFlow/md-latex/actions/workflows/release.yml"><img src="https://github.com/OpenDevFlow/md-latex/actions/workflows/release.yml/badge.svg" alt="Release"></a>
 </p>
