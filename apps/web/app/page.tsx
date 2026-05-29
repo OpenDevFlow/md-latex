@@ -6,6 +6,7 @@ import { SplitLayout } from '@/components/layout/SplitLayout';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { useTranspiler } from '@/hooks/useTranspiler';
 import { useEditorStore } from '@/store/editorStore';
+import Image from 'next/image';
 
 /**
  * The top-level editor shell — mounts the transpiler hook and
@@ -30,9 +31,11 @@ export default function EditorPage() {
         data-theme={theme}
       >
         <div className="max-w-md flex flex-col items-center">
-          <img 
+          <Image 
             src="/logo.png" 
-            alt="md-latex logo" 
+            alt="md-latex logo"
+            width={80}
+            height={80}
             className="w-20 h-20 rounded-xl object-cover shadow-lg" 
             style={{ marginBottom: '24px' }}
           />
