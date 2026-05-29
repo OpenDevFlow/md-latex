@@ -57,7 +57,7 @@ export default function RootLayout({
           href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,300..800;1,300..800&display=swap"
           rel="stylesheet"
         />
-        <link rel="manifest" href="/manifest.json" />
+        <link rel="manifest" href={`${process.env.NEXT_PUBLIC_BASE_PATH || ''}/manifest.json`} />
       </head>
       <body className="h-full">{children}</body>
     </html>

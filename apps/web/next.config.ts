@@ -1,10 +1,14 @@
 import type { NextConfig } from 'next';
 
-const isGithubActions = process.env.GITHUB_ACTIONS === 'true';
+const isGithubActions = process.env.GITHUB_ACTIONS || process.env.GITHUB_ACTIONS === 'true';
+const basePath = isGithubActions ? '/md-latex' : '';
 
 const nextConfig: NextConfig = {
   output: 'export',
-  basePath: isGithubActions ? '/md-latex' : '',
+  basePath: basePath,
+  env: {
+    NEXT_PUBLIC_BASE_PATH: basePath,
+  },
   images: {
     unoptimized: true,
   },
