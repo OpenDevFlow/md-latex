@@ -9,6 +9,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.GITHUB_ACTIONS ? 'https://opendevflow.github.io/md-latex' : 'http://localhost:3000'),
   title: 'md-latex - Markdown to LaTeX Editor',
   description:
     'Real-time Markdown to LaTeX transpiler with live preview. Write what you know, output what you need. Built for researchers, students, and academics.',
