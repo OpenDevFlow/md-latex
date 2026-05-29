@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import { useEditorStore } from '@/store/editorStore';
 import { useExport } from '@/hooks/useExport';
 import { SettingsModal } from '@/components/editor/SettingsModal';
-import Image from 'next/image';
 
 
 export function Toolbar() {
@@ -57,7 +56,7 @@ export function Toolbar() {
         </button>
 
         <div className="logo ml-1 flex items-center gap-2" aria-label="md-latex">
-          <Image src="/logo.png" alt="Logo" width={24} height={24} className="w-6 h-6 rounded-md object-cover shadow-sm" />
+          <img src={`${process.env.NEXT_PUBLIC_BASE_PATH || ''}/logo.png`} alt="Logo" className="w-6 h-6 rounded-md object-cover shadow-sm" />
         </div>
 
         {/* Document title */}
