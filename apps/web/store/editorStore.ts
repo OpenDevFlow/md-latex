@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import type { WorkspaceArtifact } from '@/types/workspace';
 
 // ──────────────────────────────────────────────────────────
 // Types
@@ -134,6 +135,12 @@ interface EditorState {
   renameItem: (id: string, newTitle: string) => void;
   moveItem: (itemId: string, newParentId: string | null) => void;
   setDocuments: (docs: FileSystemItem[]) => void;
+
+  /**
+   * Atomically replaces all persisted state slices from a workspace
+   * artifact.  Called by useWorkspace after validation and migration.
+   */
+  importWorkspace: (artifact: WorkspaceArtifact) => void;
 
   // Scroll Sync
   activeLine: number | null;
@@ -348,6 +355,22 @@ Start writing your markdown here...`;
       },
 
       setDocuments: (docs) => set({ documents: docs }),
+
+      importWorkspace: (artifact) =>
+        set({
+          documents: artifact.documents,
+          currentDocId: artifact.currentDocId,
+          content: artifact.content,
+          transpilerOptions: artifact.transpilerOptions,
+          layout: artifact.layout,
+          theme: artifact.theme,
+          showSidebar: artifact.showSidebar,
+          // Reset volatile render state
+          latex: '',
+          preview: '',
+          activeLine: null,
+          latexSourceMap: [],
+        }),
     }),
     {
       name: 'md-latex-editor',
