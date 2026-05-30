@@ -21,7 +21,8 @@ export function Toolbar() {
   const currentDocId = useEditorStore((s) => s.currentDocId);
   const toggleSidebar = useEditorStore((s) => s.toggleSidebar);
   const { copyLatex, downloadLatex, exportPDF } = useExport();
-  const { importInputRef, exportWorkspace, exportWithPassword, exportAsZipFile, openImportPicker, handleImportFile, shareViaUrl } = useWorkspace();
+  const { importInputRef, exportWorkspace, exportWithPassword, exportAsZipFile, openImportPicker,
+          parseArtifactFromFile, commitImport, handleImportFile, shareViaUrl } = useWorkspace();
 
   const [showExportMenu, setShowExportMenu] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
@@ -34,6 +35,7 @@ export function Toolbar() {
   const [showDiffModal, setShowDiffModal] = useState(false);
   const [showPasswordEnter, setShowPasswordEnter] = useState(false);
   const pendingImportFile = useRef<File | null>(null);
+  const pendingArtifact = useRef<import('@/types/workspace').WorkspaceArtifact | null>(null);
 
   // Export with password
   const [showPasswordSet, setShowPasswordSet] = useState(false);
@@ -58,23 +60,37 @@ export function Toolbar() {
     }
   }
 
-  function handleImportChange(e: React.ChangeEvent<HTMLInputElement>) {
+  async function handleImportChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
-    pendingImportFile.current = file;
-    setShowDiffModal(true);
     e.target.value = '';
+
+    // Parse the file BEFORE showing the diff so we have real documents
+    const result = await parseArtifactFromFile(file);
+    if (!result.ok) {
+      if (result.needsPassword) {
+        pendingImportFile.current = file;
+        setShowPasswordEnter(true);
+      } else {
+        setImportError(result.error);
+        setImportStatus('error');
+        setTimeout(() => setImportStatus('idle'), 5000);
+      }
+      return;
+    }
+
+    pendingImportFile.current = file;
+    pendingArtifact.current = result.artifact;
+    setShowDiffModal(true);
   }
 
   async function runImport(passphrase?: string) {
     if (!pendingImportFile.current) return;
-    const result = await handleImportFile(pendingImportFile.current, passphrase);
+    const result = await parseArtifactFromFile(pendingImportFile.current, passphrase);
     if (result.ok) {
+      pendingArtifact.current = result.artifact;
       pendingImportFile.current = null;
-      setImportStatus('success');
-      setTimeout(() => setImportStatus('idle'), 3000);
-    } else if (!result.ok && result.needsPassword) {
-      setShowPasswordEnter(true);
+      setShowDiffModal(true);
     } else {
       pendingImportFile.current = null;
       setImportError(result.error);
@@ -334,12 +350,23 @@ export function Toolbar() {
       />
 
       {/* Workspace diff / cherry-pick modal */}
-      {showDiffModal && pendingImportFile.current && (
+      {showDiffModal && pendingArtifact.current && (
         <WorkspaceDiffModal
-          incoming={{ version: 2, exportedAt: '', label: pendingImportFile.current.name, description: '', tags: [], wordCount: 0, encrypted: false, documents: [], currentDocId: null, content: '', transpilerOptions: undefined as never, layout: '3-pane', theme: 'dark', showSidebar: true }}
+          incoming={pendingArtifact.current}
           currentDocs={documents}
-          onCancel={() => { setShowDiffModal(false); pendingImportFile.current = null; }}
-          onConfirm={() => { setShowDiffModal(false); runImport(); }}
+          onCancel={() => {
+            setShowDiffModal(false);
+            pendingImportFile.current = null;
+            pendingArtifact.current = null;
+          }}
+          onConfirm={(selectedIds) => {
+            setShowDiffModal(false);
+            commitImport(pendingArtifact.current!, selectedIds);
+            pendingImportFile.current = null;
+            pendingArtifact.current = null;
+            setImportStatus('success');
+            setTimeout(() => setImportStatus('idle'), 3000);
+          }}
         />
       )}
 
