@@ -141,6 +141,7 @@ export default function EditorPage() {
         data-theme={theme}
       >
         <div className="max-w-md flex flex-col items-center">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={`${process.env.NEXT_PUBLIC_BASE_PATH || ''}/logo.png`}
             alt="md-latex logo"

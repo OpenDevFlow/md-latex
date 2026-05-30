@@ -22,7 +22,7 @@ export function Toolbar() {
   const toggleSidebar = useEditorStore((s) => s.toggleSidebar);
   const { copyLatex, downloadLatex, exportPDF } = useExport();
   const { importInputRef, exportWorkspace, exportWithPassword, exportAsZipFile, openImportPicker,
-          parseArtifactFromFile, commitImport, handleImportFile, shareViaUrl } = useWorkspace();
+          parseArtifactFromFile, commitImport, shareViaUrl } = useWorkspace();
 
   const [showExportMenu, setShowExportMenu] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
@@ -35,7 +35,7 @@ export function Toolbar() {
   const [showDiffModal, setShowDiffModal] = useState(false);
   const [showPasswordEnter, setShowPasswordEnter] = useState(false);
   const pendingImportFile = useRef<File | null>(null);
-  const pendingArtifact = useRef<import('@/types/workspace').WorkspaceArtifact | null>(null);
+  const [pendingArtifact, setPendingArtifact] = useState<import('@/types/workspace').WorkspaceArtifact | null>(null);
 
   // Export with password
   const [showPasswordSet, setShowPasswordSet] = useState(false);
@@ -80,7 +80,7 @@ export function Toolbar() {
     }
 
     pendingImportFile.current = file;
-    pendingArtifact.current = result.artifact;
+    setPendingArtifact(result.artifact);
     setShowDiffModal(true);
   }
 
@@ -88,7 +88,7 @@ export function Toolbar() {
     if (!pendingImportFile.current) return;
     const result = await parseArtifactFromFile(pendingImportFile.current, passphrase);
     if (result.ok) {
-      pendingArtifact.current = result.artifact;
+      setPendingArtifact(result.artifact);
       pendingImportFile.current = null;
       setShowDiffModal(true);
     } else {
@@ -136,6 +136,7 @@ export function Toolbar() {
         </button>
 
         <div className="logo ml-1 flex items-center gap-2" aria-label="md-latex">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={`${process.env.NEXT_PUBLIC_BASE_PATH || ''}/logo.png`} alt="Logo" className="w-6 h-6 rounded-md object-cover shadow-sm" />
         </div>
 
@@ -350,20 +351,20 @@ export function Toolbar() {
       />
 
       {/* Workspace diff / cherry-pick modal */}
-      {showDiffModal && pendingArtifact.current && (
+      {showDiffModal && pendingArtifact && (
         <WorkspaceDiffModal
-          incoming={pendingArtifact.current}
+          incoming={pendingArtifact}
           currentDocs={documents}
           onCancel={() => {
             setShowDiffModal(false);
             pendingImportFile.current = null;
-            pendingArtifact.current = null;
+            setPendingArtifact(null);
           }}
           onConfirm={(selectedIds) => {
             setShowDiffModal(false);
-            commitImport(pendingArtifact.current!, selectedIds);
+            commitImport(pendingArtifact, selectedIds);
             pendingImportFile.current = null;
-            pendingArtifact.current = null;
+            setPendingArtifact(null);
             setImportStatus('success');
             setTimeout(() => setImportStatus('idle'), 3000);
           }}

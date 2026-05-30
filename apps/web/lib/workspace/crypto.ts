@@ -62,6 +62,7 @@ export async function encryptArtifact(
   );
 
   // Return artifact with sensitive fields replaced
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { documents: _d, currentDocId: _c, content: _co, transpilerOptions: _t, ...rest } = artifact;
   return {
     ...rest,
@@ -99,6 +100,7 @@ export async function decryptArtifact(
   const dec = new TextDecoder();
   const payload: WorkspacePayload = JSON.parse(dec.decode(plainBuf));
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { ciphertext: _ci, iv: _iv, salt: _s, ...rest } = artifact;
   return {
     ...rest,

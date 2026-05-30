@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useEffect } from 'react';
+import { useRef } from 'react';
 import { useEditorStore } from '@/store/editorStore';
 import { useWorkspacesStore } from '@/store/workspacesStore';
 import { WORKSPACE_FORMAT_VERSION, type WorkspaceArtifact } from '@/types/workspace';
