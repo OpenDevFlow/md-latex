@@ -9,12 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-#### Workspace — Core Export / Import
+#### Workspace - Core Export / Import
 - Export full workspace as a versioned `.mdlatex` bundle (JSON, format v2)
 - Import workspace with live validation, format version checking, and a forward-compatible migration chain
 - Workspace format version bumped to v2 with metadata fields: `label`, `description`, `tags`, `wordCount`
 
-#### Workspace — Advanced Features
+#### Workspace - Advanced Features
 - **Password protection**: AES-256-GCM encryption via native Web Crypto API (PBKDF2 key derivation, 100k iterations). Only the sensitive payload is encrypted; metadata stays readable in the import dialog
 - **Export as ZIP**: Download all workspace files as a structured `.zip` preserving folder hierarchy, plus a `.mdlatex-meta.json` manifest
 - **Share via URL**: Compress workspace to a `#w=` URL hash using native `CompressionStream` (zero dependencies). Anyone with the link loads the workspace instantly in their browser
@@ -24,6 +24,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Auto-snapshots**: Workspace is automatically snapshotted to `localStorage` before every import (ring buffer of 5 entries, 400 KB size guard)
 - **Named workspace switcher**: Save the current workspace under a custom name, then load, rename, export, or delete it from the sidebar Workspaces panel
 - **Workspace history panel**: Browse and restore from the last 5 auto-snapshots in the sidebar
+
+### Fixed
+
+- **Import Selected button not working**: The diff modal was shown with a hardcoded empty artifact before the file was parsed, causing all existing files to appear as "Removed" and 0 files to be importable. The import flow now parses and validates the file first, then shows the real diff. Cherry-pick selection is correctly applied via `commitImport` before loading the workspace
+- **`frontmatter.date.replace is not a function` crash**: js-yaml parses certain date formats (e.g. `20/10/2022`) as native `Date` objects rather than strings. The date handling in the transpiler now coerces all values to string via `String()` before calling `.replace()`, making all date formats safe: ISO dates, DD/MM/YYYY, plain text, `\today`, and numeric years
 
 ## [1.0.0] - 2026-05-29
 
