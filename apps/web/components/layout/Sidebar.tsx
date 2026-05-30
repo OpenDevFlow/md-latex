@@ -200,6 +200,46 @@ export function Sidebar() {
     };
   }, [heights]);
 
+  const onKeyDown = useCallback((divider: 'tree-outline' | 'outline-workspaces') => (e: React.KeyboardEvent) => {
+    const step = 5; // 5% per keypress
+    if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+      e.preventDefault();
+      
+      const dyPct = (e.key === 'ArrowDown' || e.key === 'ArrowRight') ? step : -step;
+      const minPct = 5; 
+
+      setHeights(prev => {
+        if (divider === 'tree-outline') {
+          let newTree = prev.tree + dyPct;
+          let newOutline = prev.outline - dyPct;
+
+          if (newTree < minPct) {
+            newOutline -= (minPct - newTree);
+            newTree = minPct;
+          } else if (newOutline < minPct) {
+            newTree -= (minPct - newOutline);
+            newOutline = minPct;
+          }
+
+          return { ...prev, tree: newTree, outline: newOutline };
+        } else {
+          let newOutline = prev.outline + dyPct;
+          let newWorkspaces = prev.workspaces - dyPct;
+
+          if (newOutline < minPct) {
+            newWorkspaces -= (minPct - newOutline);
+            newOutline = minPct;
+          } else if (newWorkspaces < minPct) {
+            newOutline -= (minPct - newWorkspaces);
+            newWorkspaces = minPct;
+          }
+
+          return { ...prev, outline: newOutline, workspaces: newWorkspaces };
+        }
+      });
+    }
+  }, []);
+
   useEffect(() => {
     function onMouseMove(e: MouseEvent) {
       if (!dragging.current || !containerRef.current) return;
@@ -282,7 +322,7 @@ export function Sidebar() {
   const dividerStyle = {
     height: '4px',
     cursor: 'row-resize',
-    backgroundColor: 'var(--color-surface-1)',
+    backgroundColor: 'var(--color-surface)',
     borderTop: '1px solid var(--color-border)',
     borderBottom: '1px solid var(--color-border)',
     flexShrink: 0,
@@ -357,8 +397,16 @@ export function Sidebar() {
 
       <div 
         style={dividerStyle}
-        className="hover:bg-accent transition-colors"
+        className="hover:bg-accent transition-colors focus-visible:outline-none focus-visible:bg-accent"
         onMouseDown={onMouseDown('tree-outline')}
+        onKeyDown={onKeyDown('tree-outline')}
+        role="separator"
+        aria-orientation="horizontal"
+        tabIndex={0}
+        aria-label="Resize File Tree and Outline"
+        aria-valuenow={heights.tree}
+        aria-valuemin={5}
+        aria-valuemax={90}
       />
 
       {/* File Outline Section */}
@@ -401,8 +449,16 @@ export function Sidebar() {
 
       <div 
         style={dividerStyle}
-        className="hover:bg-accent transition-colors"
+        className="hover:bg-accent transition-colors focus-visible:outline-none focus-visible:bg-accent"
         onMouseDown={onMouseDown('outline-workspaces')}
+        onKeyDown={onKeyDown('outline-workspaces')}
+        role="separator"
+        aria-orientation="horizontal"
+        tabIndex={0}
+        aria-label="Resize Outline and Workspaces"
+        aria-valuenow={heights.outline}
+        aria-valuemin={5}
+        aria-valuemax={90}
       />
 
       {/* Workspaces Section */}
