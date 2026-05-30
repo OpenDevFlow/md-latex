@@ -54,6 +54,9 @@ jobs:
           body_path: release_notes.md
           # GitHub automatically attaches source code (.zip and .tar.gz) for releases
 
+      - name: Cleanup Release Notes
+        run: rm release_notes.md
+
       - name: Update Package Versions
         env:
           VERSION: ${{ github.event.inputs.version }}
