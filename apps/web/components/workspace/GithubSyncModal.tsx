@@ -89,47 +89,13 @@ export function GithubSyncModal({ onClose }: GithubSyncModalProps) {
     }
   };
 
-  const handleSync = async () => {
+  const handleLink = () => {
     if (!githubToken || !selectedRepo) return;
-    
-    const [owner, repo] = selectedRepo.split('/');
-    setStatus('syncing');
-    
-    try {
-      const artifact = buildArtifact();
-      const filesToSync = [];
-      
-      // Add the workspace backup file
-      filesToSync.push({
-        path: 'workspace.mdlatex',
-        content: JSON.stringify(artifact, null, 2),
-      });
-
-      // Add all markdown and tex documents in a structured way
-      for (const doc of (artifact.documents || [])) {
-        if (doc.type !== 'folder') {
-          // Resolve path based on parent folders (simplified for now, flattening or just saving to docs/)
-          const ext = doc.type === 'bib' ? '.bib' : '.md'; // tex is generated, so mostly md and bib
-          const filename = doc.title.endsWith(ext) ? doc.title : `${doc.title}${ext}`;
-          filesToSync.push({
-            path: `docs/${doc.id}/${filename}`,
-            content: doc.content,
-          });
-        }
-      }
-
-      await commitWorkspace(githubToken, owner, repo, 'main', filesToSync, `Sync workspace: ${new Date().toLocaleString()}`);
-      
-      setGithubRepo(selectedRepo);
-      setStatus('success');
-      setTimeout(() => {
-        onClose();
-      }, 2000);
-    } catch (err) {
-      const error = err as Error;
-      setErrorMessage(error.message || 'Failed to sync to GitHub.');
-      setStatus('error');
-    }
+    setGithubRepo(selectedRepo);
+    setStatus('success');
+    setTimeout(() => {
+      onClose();
+    }, 1000);
   };
 
   const handleCancelAuth = () => {
@@ -246,7 +212,7 @@ export function GithubSyncModal({ onClose }: GithubSyncModalProps) {
               <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
               </svg>
-              <p className="font-medium text-lg">Successfully Synced!</p>
+              <p className="font-medium text-lg">Successfully Linked!</p>
             </div>
           )}
 
@@ -320,15 +286,16 @@ export function GithubSyncModal({ onClose }: GithubSyncModalProps) {
               Disconnect
             </button>
             <button
-              onClick={handleSync}
+              onClick={handleLink}
               disabled={!selectedRepo}
               className="bg-accent hover:bg-accent-hover disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-medium transition-colors flex items-center gap-2 rounded-lg"
               style={{ padding: '8px 24px' }}
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+                <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
               </svg>
-              Sync Workspace
+              Link Repository
             </button>
           </div>
         )}

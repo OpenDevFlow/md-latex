@@ -115,6 +115,10 @@ interface EditorState {
   githubToken: string | null;
   githubUser: string | null;
   githubRepo: string | null;
+  githubBranch: string;
+
+  // Sidebar Layout
+  sidebarTab: 'explorer' | 'workspaces' | 'source-control';
 
   // Document management
   documents: FileSystemItem[];
@@ -134,6 +138,8 @@ interface EditorState {
   setGithubToken: (token: string | null) => void;
   setGithubUser: (user: string | null) => void;
   setGithubRepo: (repo: string | null) => void;
+  setGithubBranch: (branch: string) => void;
+  setSidebarTab: (tab: 'explorer' | 'workspaces' | 'source-control') => void;
 
   // Document actions
   saveDocument: (title?: string) => void;
@@ -183,9 +189,11 @@ export const useEditorStore = create<EditorState>()(
       activePane: 'md',
       theme: 'dark',
       showSidebar: true,
+      sidebarTab: 'explorer',
       githubToken: null,
       githubUser: null,
       githubRepo: null,
+      githubBranch: 'main',
       documents: [
         {
           id: 'default-doc-id',
@@ -225,6 +233,8 @@ export const useEditorStore = create<EditorState>()(
       setGithubToken: (githubToken) => set({ githubToken }),
       setGithubUser: (githubUser) => set({ githubUser }),
       setGithubRepo: (githubRepo) => set({ githubRepo }),
+      setGithubBranch: (githubBranch) => set({ githubBranch }),
+      setSidebarTab: (sidebarTab) => set({ sidebarTab }),
 
       // Document actions
       saveDocument: (title) => {

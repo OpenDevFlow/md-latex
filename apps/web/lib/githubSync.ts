@@ -111,3 +111,71 @@ export async function commitWorkspace(
 
   return newCommitData.sha;
 }
+
+export interface GithubBranch {
+  name: string;
+  commit: { sha: string };
+}
+
+export async function getBranches(token: string, owner: string, repo: string): Promise<GithubBranch[]> {
+  const octokit = new Octokit({ auth: token });
+  const { data } = await octokit.rest.repos.listBranches({
+    owner,
+    repo,
+    per_page: 100,
+  });
+  return data as GithubBranch[];
+}
+
+export async function createBranch(token: string, owner: string, repo: string, branchName: string, sha: string) {
+  const octokit = new Octokit({ auth: token });
+  const { data } = await octokit.rest.git.createRef({
+    owner,
+    repo,
+    ref: `refs/heads/${branchName}`,
+    sha,
+  });
+  return data;
+}
+
+export interface GithubCommit {
+  sha: string;
+  commit: {
+    message: string;
+    author: { name: string; date: string } | null;
+  };
+}
+
+export async function getCommits(token: string, owner: string, repo: string, branch: string): Promise<GithubCommit[]> {
+  const octokit = new Octokit({ auth: token });
+  const { data } = await octokit.rest.repos.listCommits({
+    owner,
+    repo,
+    sha: branch,
+    per_page: 50,
+  });
+  return data as unknown as GithubCommit[];
+}
+
+export async function getWorkspaceFromCommit(token: string, owner: string, repo: string, commitSha: string): Promise<string> {
+  const octokit = new Octokit({ auth: token });
+  
+  // We need to fetch the file content from a specific commit.
+  // Using octokit.rest.repos.getContent returns base64 encoded content for files up to 1MB.
+  try {
+    const { data } = await octokit.rest.repos.getContent({
+      owner,
+      repo,
+      path: 'workspace.mdlatex',
+      ref: commitSha,
+    });
+
+    if ('type' in data && data.type === 'file' && 'content' in data) {
+      // Decode base64
+      return Buffer.from(data.content, 'base64').toString('utf-8');
+    }
+    throw new Error('Not a file');
+  } catch (error) {
+    throw new Error('Could not fetch workspace.mdlatex from this commit. It may not exist.');
+  }
+}

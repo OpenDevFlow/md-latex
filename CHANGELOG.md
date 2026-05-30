@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **GitHub Version Control**: Implemented a comprehensive GitHub version control system directly inside the app. Users can now view their commit history, checkout previous commits, create new branches, and commit changes without leaving the editor.
+- **Sidebar Tabs Refactor**: Redesigned the left sidebar to use a clean Tab-based navigation system, splitting the File Explorer, Workspaces, and the new Version Control panel into distinct dedicated views.
 - **GitHub Cloud Sync & Backup**: Added the ability to sync and backup the entire workspace directly to a GitHub repository from the browser. It securely uses the GitHub Device Authorization Flow (proxied to bypass CORS restrictions natively on GitHub Pages) to handle OAuth without needing a backend server.
 - **Copy Device Code Button**: Added a copy-to-clipboard button right next to the GitHub device authorization code to improve UX.
 

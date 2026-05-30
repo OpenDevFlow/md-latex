@@ -8,7 +8,6 @@ import { SettingsModal } from '@/components/editor/SettingsModal';
 import { PasswordModal } from '@/components/workspace/PasswordModal';
 import { ShareUrlModal } from '@/components/workspace/ShareUrlModal';
 import { WorkspaceDiffModal } from '@/components/workspace/WorkspaceDiffModal';
-import { GithubSyncModal } from '@/components/workspace/GithubSyncModal';
 
 
 export function Toolbar() {
@@ -26,7 +25,6 @@ export function Toolbar() {
           parseArtifactFromFile, commitImport, shareViaUrl } = useWorkspace();
 
   const [showExportMenu, setShowExportMenu] = useState(false);
-  const [showGithubModal, setShowGithubModal] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [docTitle, setDocTitle] = useState('');
   const [copied, setCopied] = useState(false);
@@ -205,15 +203,25 @@ export function Toolbar() {
           <span>Save</span>
         </button>
 
-        {/* Cloud Sync Button */}
+        {/* Source Control Button */}
         <button
           id="cloud-sync-btn"
-          onClick={() => setShowGithubModal(true)}
+          onClick={() => {
+            const store = useEditorStore.getState();
+            if (!store.showSidebar) store.toggleSidebar();
+            store.setSidebarTab('source-control');
+          }}
           className="toolbar-btn secondary"
-          title="Sync to GitHub"
+          title="Source Control"
         >
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-          <span>Cloud Sync</span>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <circle cx="18" cy="18" r="3"></circle>
+            <circle cx="6" cy="6" r="3"></circle>
+            <circle cx="18" cy="6" r="3"></circle>
+            <path d="M18 9v6"></path>
+            <path d="M18 18c-3 0-5-2-7-5S6 9 6 9"></path>
+          </svg>
+          <span>Version Control</span>
         </button>
 
         {/* Export menu */}
@@ -463,9 +471,6 @@ export function Toolbar() {
             </>
           )}
         </div>
-      )}
-      {showGithubModal && (
-        <GithubSyncModal onClose={() => setShowGithubModal(false)} />
       )}
     </header>
   );
