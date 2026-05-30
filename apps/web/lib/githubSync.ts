@@ -175,7 +175,7 @@ export async function getWorkspaceFromCommit(token: string, owner: string, repo:
       return Buffer.from(data.content, 'base64').toString('utf-8');
     }
     throw new Error('Not a file');
-  } catch (error) {
+  } catch {
     throw new Error('Could not fetch workspace.mdlatex from this commit. It may not exist.');
   }
 }

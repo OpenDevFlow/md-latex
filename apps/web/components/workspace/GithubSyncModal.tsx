@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useEditorStore } from '@/store/editorStore';
 import { requestDeviceCode, pollForToken, DeviceCodeResponse } from '@/lib/githubAuth';
-import { getUserRepos, createRepo, commitWorkspace, GithubRepo } from '@/lib/githubSync';
-import { useWorkspace } from '@/hooks/useWorkspace';
+import { getUserRepos, createRepo, GithubRepo } from '@/lib/githubSync';
 
 interface GithubSyncModalProps {
   onClose: () => void;
@@ -10,7 +9,6 @@ interface GithubSyncModalProps {
 
 export function GithubSyncModal({ onClose }: GithubSyncModalProps) {
   const { githubToken, githubRepo, setGithubToken, setGithubUser, setGithubRepo } = useEditorStore();
-  const { buildArtifact } = useWorkspace();
   const cancelAuthRef = React.useRef(false);
 
   const [deviceCodeData, setDeviceCodeData] = useState<DeviceCodeResponse | null>(null);
