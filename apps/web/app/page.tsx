@@ -213,6 +213,14 @@ export default function EditorPage() {
               return success;
             }}
             onCancel={() => { setShowPasswordEnter(false); setDropFile(null); setPendingUrlJson(null); }}
+            onMaxRetries={() => {
+              setShowPasswordEnter(false);
+              setDropFile(null);
+              setPendingUrlJson(null);
+              setDropError('Maximum password attempts exceeded. Import cancelled.');
+              setDropStatus('error');
+              setTimeout(() => setDropStatus('idle'), 5000);
+            }}
           />
         )}
 

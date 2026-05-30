@@ -6,9 +6,10 @@ interface Props {
   mode: 'set' | 'enter';
   onConfirm: (passphrase: string) => Promise<boolean | void> | boolean | void;
   onCancel: () => void;
+  onMaxRetries?: () => void;
 }
 
-export function PasswordModal({ mode, onConfirm, onCancel }: Props) {
+export function PasswordModal({ mode, onConfirm, onCancel, onMaxRetries }: Props) {
   const [pass, setPass] = useState('');
   const [confirm, setConfirm] = useState('');
   const [error, setError] = useState('');
@@ -30,7 +31,11 @@ export function PasswordModal({ mode, onConfirm, onCancel }: Props) {
       if (success === false && mode === 'enter') {
         const nextRetries = retries + 1;
         if (nextRetries >= 3) {
-          onCancel();
+          if (onMaxRetries) {
+            onMaxRetries();
+          } else {
+            onCancel();
+          }
         } else {
           setRetries(nextRetries);
           setError(`Incorrect password. ${3 - nextRetries} attempt${3 - nextRetries === 1 ? '' : 's'} left.`);
