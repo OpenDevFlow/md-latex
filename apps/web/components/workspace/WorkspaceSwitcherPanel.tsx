@@ -66,7 +66,8 @@ export function WorkspaceSwitcherPanel() {
           onKeyDown={(e) => e.key === 'Enter' && handleSave()}
           placeholder="Workspace name…"
           style={{
-            flex: 1, padding: '8px 12px', borderRadius: '8px', fontSize: '13px',
+            flex: 1, minWidth: 0, boxSizing: 'border-box',
+            padding: '8px 12px', borderRadius: '8px', fontSize: '13px',
             border: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface-2)',
             color: 'var(--color-text)', outline: 'none',
           }}
