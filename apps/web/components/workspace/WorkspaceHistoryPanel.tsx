@@ -3,15 +3,23 @@
 import { useWorkspacesStore } from '@/store/workspacesStore';
 import { useEditorStore } from '@/store/editorStore';
 import type { WorkspaceArtifact } from '@/types/workspace';
+import { ConfirmModal } from './ConfirmModal';
+import { useState } from 'react';
 
 export function WorkspaceHistoryPanel() {
   const snapshots = useWorkspacesStore((s) => s.snapshots);
   const importWorkspace = useEditorStore((s) => s.importWorkspace);
 
+  const [confirmConfig, setConfirmConfig] = useState<{
+    isOpen: boolean;
+    artifact: WorkspaceArtifact | null;
+  }>({
+    isOpen: false,
+    artifact: null,
+  });
+
   function restore(artifact: WorkspaceArtifact) {
-    if (confirm('Restore this snapshot? Your current workspace will be replaced.')) {
-      importWorkspace(artifact);
-    }
+    setConfirmConfig({ isOpen: true, artifact });
   }
 
   function formatTime(iso: string) {
@@ -58,6 +66,20 @@ export function WorkspaceHistoryPanel() {
           </div>
         );
       })}
+
+      {confirmConfig.isOpen && confirmConfig.artifact && (
+        <ConfirmModal
+          title="Restore Snapshot"
+          message="Restore this snapshot? Your current workspace will be replaced."
+          confirmLabel="Restore"
+          isDanger={true}
+          onCancel={() => setConfirmConfig({ isOpen: false, artifact: null })}
+          onConfirm={() => {
+            importWorkspace(confirmConfig.artifact!);
+            setConfirmConfig({ isOpen: false, artifact: null });
+          }}
+        />
+      )}
     </div>
   );
 }

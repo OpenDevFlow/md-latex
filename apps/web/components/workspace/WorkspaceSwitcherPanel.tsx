@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useWorkspacesStore } from '@/store/workspacesStore';
 import { useEditorStore } from '@/store/editorStore';
 import { useWorkspace } from '@/hooks/useWorkspace';
+import { ConfirmModal } from './ConfirmModal';
 
 export function WorkspaceSwitcherPanel() {
   const savedWorkspaces = useWorkspacesStore((s) => s.savedWorkspaces);
@@ -16,6 +17,23 @@ export function WorkspaceSwitcherPanel() {
   const [saveName, setSaveName] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName]   = useState('');
+  
+  // Modal state
+  const [confirmConfig, setConfirmConfig] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    confirmLabel: string;
+    isDanger: boolean;
+    onConfirm: () => void;
+  }>({
+    isOpen: false,
+    title: '',
+    message: '',
+    confirmLabel: 'Confirm',
+    isDanger: false,
+    onConfirm: () => {},
+  });
 
   const list = Object.values(savedWorkspaces).sort(
     (a, b) => new Date(b.savedAt).getTime() - new Date(a.savedAt).getTime()
@@ -30,15 +48,33 @@ export function WorkspaceSwitcherPanel() {
   function handleLoad(id: string) {
     const entry = savedWorkspaces[id];
     if (!entry) return;
-    if (confirm(`Load workspace "${entry.name}"? Your current workspace will be replaced.`)) {
-      importWorkspace(entry.artifact);
-    }
+    setConfirmConfig({
+      isOpen: true,
+      title: 'Load Workspace',
+      message: `Load workspace "${entry.name}"? Your current workspace will be replaced.`,
+      confirmLabel: 'Load',
+      isDanger: false,
+      onConfirm: () => {
+        setConfirmConfig(c => ({ ...c, isOpen: false }));
+        importWorkspace(entry.artifact);
+      }
+    });
   }
 
   function handleDelete(id: string) {
     const entry = savedWorkspaces[id];
     if (!entry) return;
-    if (confirm(`Delete "${entry.name}"?`)) deleteWorkspace(id);
+    setConfirmConfig({
+      isOpen: true,
+      title: 'Delete Workspace',
+      message: `Are you sure you want to delete "${entry.name}"? This cannot be undone.`,
+      confirmLabel: 'Delete',
+      isDanger: true,
+      onConfirm: () => {
+        setConfirmConfig(c => ({ ...c, isOpen: false }));
+        deleteWorkspace(id);
+      }
+    });
   }
 
   function startRename(id: string, currentName: string) {
@@ -135,6 +171,17 @@ export function WorkspaceSwitcherPanel() {
           </div>
         </div>
       ))}
+
+      {confirmConfig.isOpen && (
+        <ConfirmModal
+          title={confirmConfig.title}
+          message={confirmConfig.message}
+          confirmLabel={confirmConfig.confirmLabel}
+          isDanger={confirmConfig.isDanger}
+          onCancel={() => setConfirmConfig(c => ({ ...c, isOpen: false }))}
+          onConfirm={confirmConfig.onConfirm}
+        />
+      )}
     </div>
   );
 }
