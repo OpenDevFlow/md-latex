@@ -19,7 +19,7 @@ export function SourceControlPanel() {
   const [showSyncModal, setShowSyncModal] = useState(false);
   const [syncing, setSyncing] = useState(false);
   
-  const [confirmCheckoutSha, setConfirmCheckoutSha] = useState<string | null>(null);
+  const [confirmAction, setConfirmAction] = useState<{ sha: string, type: 'pull' | 'checkout' } | null>(null);
   
   const loadData = React.useCallback(async () => {
     if (!githubToken || !githubRepo) return;
@@ -58,7 +58,7 @@ export function SourceControlPanel() {
       return;
     }
     const latestCommitSha = commits[0].sha;
-    setConfirmCheckoutSha(latestCommitSha);
+    setConfirmAction({ sha: latestCommitSha, type: 'pull' });
   };
 
   const handleCreateBranch = async () => {
@@ -123,11 +123,11 @@ export function SourceControlPanel() {
 
   const handleCheckout = (commitSha: string) => {
     if (!githubToken || !githubRepo) return;
-    setConfirmCheckoutSha(commitSha);
+    setConfirmAction({ sha: commitSha, type: 'checkout' });
   };
 
   const performCheckout = async (commitSha: string) => {
-    setConfirmCheckoutSha(null);
+    setConfirmAction(null);
     if (!githubToken || !githubRepo) return;
     
     const [owner, repo] = githubRepo.split('/');
@@ -179,7 +179,7 @@ export function SourceControlPanel() {
         </div>
         
         {error && (
-          <div className="text-xs text-danger bg-danger/10 p-2 rounded border border-danger/20 break-words">
+          <div className="text-xs text-danger bg-danger/10 rounded border border-danger/20 break-words" style={{ padding: '8px' }}>
             {error}
           </div>
         )}
@@ -269,10 +269,11 @@ export function SourceControlPanel() {
                 {new Date(commit.commit.author?.date || '').toLocaleString()}
               </div>
               
-              <div className="absolute top-0 right-0 h-full flex flex-col justify-center px-2 bg-gradient-to-l from-surface-2 via-surface-2 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
+              <div className="absolute top-0 right-0 h-full flex flex-col justify-center bg-gradient-to-l from-surface-2 via-surface-2 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" style={{ padding: '0 8px' }}>
                 <button
                   onClick={() => handleCheckout(commit.sha)}
-                  className="bg-accent hover:bg-accent-hover text-white text-[10px] font-medium px-2 py-1 rounded shadow-sm"
+                  className="bg-accent hover:bg-accent-hover text-white text-[10px] font-medium rounded shadow-sm"
+                  style={{ padding: '4px 8px' }}
                 >
                   Checkout
                 </button>
@@ -284,7 +285,7 @@ export function SourceControlPanel() {
       
       {showSyncModal && <GithubSyncModal onClose={() => setShowSyncModal(false)} />}
       
-      {confirmCheckoutSha && (
+      {confirmAction && (
         <div className="fixed inset-0 z-[150] flex items-center justify-center bg-black/50 backdrop-blur-sm">
           <div 
             className="bg-surface border border-border rounded-xl shadow-xl flex flex-col overflow-hidden animate-dropIn max-w-sm w-full mx-4"
@@ -295,7 +296,9 @@ export function SourceControlPanel() {
                   <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
                 </svg>
               </div>
-              <h2 className="text-base font-semibold text-text m-0">Confirm Checkout</h2>
+              <h2 className="text-base font-semibold text-text m-0">
+                {confirmAction.type === 'pull' ? 'Confirm Pull' : 'Confirm Checkout'}
+              </h2>
             </div>
             <div style={{ padding: '20px' }}>
               <p className="text-sm text-text-muted m-0 leading-relaxed">
@@ -306,18 +309,18 @@ export function SourceControlPanel() {
             </div>
             <div className="border-t border-border bg-surface-2 flex items-center justify-end gap-3" style={{ padding: '12px 20px' }}>
               <button
-                onClick={() => setConfirmCheckoutSha(null)}
+                onClick={() => setConfirmAction(null)}
                 className="text-sm font-medium text-text-muted hover:text-text transition-colors"
                 style={{ padding: '8px 16px' }}
               >
                 Cancel
               </button>
               <button
-                onClick={() => performCheckout(confirmCheckoutSha)}
-                className="bg-warning hover:bg-warning/90 text-white text-sm font-medium transition-colors rounded-lg shadow-sm"
+                onClick={() => performCheckout(confirmAction.sha)}
+                className="bg-warning hover:bg-warning/90 text-white text-sm font-medium transition-colors rounded-lg shadow-sm capitalize"
                 style={{ padding: '8px 16px' }}
               >
-                Checkout
+                {confirmAction.type}
               </button>
             </div>
           </div>

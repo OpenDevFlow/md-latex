@@ -161,8 +161,19 @@ export async function getWorkspaceFromCommit(token: string, owner: string, repo:
   const octokit = new Octokit({ auth: token });
   
   // We need to fetch the file content from a specific commit.
-  // Using octokit.rest.repos.getContent returns base64 encoded content for files up to 1MB.
   try {
+    // Prevent 404 errors in Next.js by checking if the file exists in the tree first
+    const { data: treeData } = await octokit.rest.git.getTree({
+      owner,
+      repo,
+      tree_sha: commitSha,
+    });
+
+    const fileExists = treeData.tree.some((item) => item.path === 'workspace.mdlatex');
+    if (!fileExists) {
+      throw new Error('Could not fetch workspace.mdlatex from this commit. It may not exist.');
+    }
+
     const { data } = await octokit.rest.repos.getContent({
       owner,
       repo,
@@ -175,7 +186,11 @@ export async function getWorkspaceFromCommit(token: string, owner: string, repo:
       return Buffer.from(data.content, 'base64').toString('utf-8');
     }
     throw new Error('Not a file');
-  } catch {
+  } catch (err) {
+    // If it's our custom error, rethrow it
+    if (err instanceof Error && err.message.includes('Could not fetch')) {
+      throw err;
+    }
     throw new Error('Could not fetch workspace.mdlatex from this commit. It may not exist.');
   }
 }
