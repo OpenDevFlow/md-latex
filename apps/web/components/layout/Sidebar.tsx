@@ -364,7 +364,7 @@ function WorkspacesSidebarSection() {
   const [tab, setTab] = useState<'saved' | 'history'>('saved');
 
   return (
-    <div className="sidebar-section" style={{ flexShrink: 0 }}>
+    <div className="sidebar-section">
       <div className="sidebar-header">
         <button
           className="flex items-center gap-2 flex-1"
@@ -381,9 +381,9 @@ function WorkspacesSidebarSection() {
       </div>
 
       {expanded && (
-        <div>
-          {/* Tabs */}
-          <div style={{ display: 'flex', borderBottom: '1px solid var(--color-border)', marginBottom: '4px' }}>
+        <>
+          {/* Tabs — sticky via sidebar-header z-index */}
+          <div style={{ display: 'flex', borderBottom: '1px solid var(--color-border)', flexShrink: 0, background: 'var(--color-surface-2)' }}>
             {(['saved', 'history'] as const).map((t) => (
               <button
                 key={t}
@@ -400,8 +400,10 @@ function WorkspacesSidebarSection() {
             ))}
           </div>
 
-          {tab === 'saved' ? <WorkspaceSwitcherPanel /> : <WorkspaceHistoryPanel />}
-        </div>
+          <div className="sidebar-content">
+            {tab === 'saved' ? <WorkspaceSwitcherPanel /> : <WorkspaceHistoryPanel />}
+          </div>
+        </>
       )}
     </div>
   );
