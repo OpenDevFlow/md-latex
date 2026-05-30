@@ -19,10 +19,11 @@ export default function EditorPage() {
 
   const theme = useEditorStore((s) => s.theme);
   const documents = useEditorStore((s) => s.documents);
-  const { handleImportFile, parseArtifactFromFile, commitImport, checkUrlHash } = useWorkspace();
+  const { parseArtifactFromText, parseArtifactFromFile, commitImport, checkUrlHash } = useWorkspace();
 
   const [isDragging, setIsDragging] = useState(false);
   const [dropFile, setDropFile] = useState<File | null>(null);
+  const [pendingUrlJson, setPendingUrlJson] = useState<string | null>(null);
   const [dropArtifact, setDropArtifact] = useState<import('@/types/workspace').WorkspaceArtifact | null>(null);
   const [showDiff, setShowDiff] = useState(false);
   const [showPasswordEnter, setShowPasswordEnter] = useState(false);
@@ -35,10 +36,30 @@ export default function EditorPage() {
 
   // ── URL hash detection on mount ──────────────────────
   useEffect(() => {
-    checkUrlHash().then((result) => {
-      if (result && !result.ok && result.needsPassword) {
-        setShowPasswordEnter(true);
+    checkUrlHash().then((hashResult) => {
+      if (!hashResult || !hashResult.ok) {
+        if (hashResult && !hashResult.ok) {
+          setDropError(hashResult.error);
+          setDropStatus('error');
+          setTimeout(() => setDropStatus('idle'), 5000);
+        }
+        return;
       }
+      parseArtifactFromText(hashResult.text).then((parseResult) => {
+        if (!parseResult.ok) {
+          if (parseResult.needsPassword) {
+            setPendingUrlJson(hashResult.text);
+            setShowPasswordEnter(true);
+          } else {
+            setDropError(parseResult.error);
+            setDropStatus('error');
+            setTimeout(() => setDropStatus('idle'), 5000);
+          }
+          return;
+        }
+        setDropArtifact(parseResult.artifact);
+        setShowDiff(true);
+      });
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -83,14 +104,23 @@ export default function EditorPage() {
   }, [parseArtifactFromFile]);
 
   async function runDropImport(passphrase?: string) {
-    if (!dropFile) return;
-    const result = await parseArtifactFromFile(dropFile, passphrase);
+    if (!dropFile && !pendingUrlJson) return;
+
+    let result;
+    if (dropFile) {
+      result = await parseArtifactFromFile(dropFile, passphrase);
+    } else {
+      result = await parseArtifactFromText(pendingUrlJson!, passphrase);
+    }
+
     if (result.ok) {
       setDropArtifact(result.artifact);
       setDropFile(null);
+      setPendingUrlJson(null);
       setShowDiff(true);
     } else {
       setDropFile(null);
+      setPendingUrlJson(null);
       setDropError(result.error);
       setDropStatus('error');
       setTimeout(() => setDropStatus('idle'), 5000);
@@ -155,11 +185,12 @@ export default function EditorPage() {
           <WorkspaceDiffModal
             incoming={dropArtifact}
             currentDocs={documents}
-            onCancel={() => { setShowDiff(false); setDropFile(null); setDropArtifact(null); }}
+            onCancel={() => { setShowDiff(false); setDropFile(null); setPendingUrlJson(null); setDropArtifact(null); }}
             onConfirm={(selectedIds) => {
               setShowDiff(false);
               commitImport(dropArtifact, selectedIds);
               setDropFile(null);
+              setPendingUrlJson(null);
               setDropArtifact(null);
               setDropStatus('success');
               setTimeout(() => setDropStatus('idle'), 3000);
@@ -167,12 +198,12 @@ export default function EditorPage() {
           />
         )}
 
-        {/* Password modal for encrypted drop */}
+        {/* Password modal for encrypted drop / URL */}
         {showPasswordEnter && (
           <PasswordModal
             mode="enter"
             onConfirm={(p) => { setShowPasswordEnter(false); runDropImport(p); }}
-            onCancel={() => { setShowPasswordEnter(false); setDropFile(null); }}
+            onCancel={() => { setShowPasswordEnter(false); setDropFile(null); setPendingUrlJson(null); }}
           />
         )}
 

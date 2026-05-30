@@ -27,6 +27,10 @@ export type ParseResult =
   | { ok: true; artifact: WorkspaceArtifact }
   | { ok: false; error: string; needsPassword?: boolean };
 
+export type UrlHashResult =
+  | { ok: true; text: string }
+  | { ok: false; error: string };
+
 export interface ShareResult {
   ok: boolean;
   url?: string;
@@ -42,11 +46,12 @@ export interface UseWorkspaceReturn {
   exportWithPassword: (passphrase: string) => Promise<void>;
   exportAsZipFile: () => void;
   openImportPicker: () => void;
+  parseArtifactFromText: (text: string, passphrase?: string) => Promise<ParseResult>;
   parseArtifactFromFile: (file: File, passphrase?: string) => Promise<ParseResult>;
   commitImport: (artifact: WorkspaceArtifact, selectedIds?: string[]) => void;
   handleImportFile: (file: File, passphrase?: string) => Promise<ImportResult>;
   shareViaUrl: (passphrase?: string) => Promise<ShareResult>;
-  checkUrlHash: () => Promise<ImportResult | null>;
+  checkUrlHash: () => Promise<UrlHashResult | null>;
 }
 
 // ──────────────────────────────────────────────────────────
@@ -138,40 +143,7 @@ export function useWorkspace(): UseWorkspaceReturn {
     importInputRef.current?.click();
   }
 
-  async function _parseAndLoad(text: string, passphrase?: string): Promise<ImportResult> {
-    let parsed: unknown;
-    try { parsed = JSON.parse(text); }
-    catch { return { ok: false, error: 'The file is not valid JSON. Make sure you selected a .mdlatex file.' }; }
-
-    if (!validateWorkspaceArtifact(parsed)) {
-      return { ok: false, error: 'The file does not appear to be a valid md-latex workspace artifact.' };
-    }
-
-    if (isNewerVersion(parsed)) {
-      return { ok: false, error: `This workspace was created with a newer version of md-latex (format v${parsed.version}). Please update the app.` };
-    }
-
-    let migrated: WorkspaceArtifact;
-    try { migrated = migrateWorkspace(parsed); }
-    catch (err) { return { ok: false, error: `Migration failed: ${err instanceof Error ? err.message : String(err)}` }; }
-
-    if (migrated.encrypted) {
-      if (!passphrase) return { ok: false, error: 'This workspace is password-protected.', needsPassword: true };
-      try { migrated = await decryptArtifact(migrated, passphrase); }
-      catch (err) { return { ok: false, error: err instanceof Error ? err.message : 'Decryption failed.' }; }
-    }
-
-    // Auto-snapshot before overwriting
-    pushSnapshot(buildArtifact());
-    importWorkspace(migrated);
-    return { ok: true };
-  }
-
-  async function parseArtifactFromFile(file: File, passphrase?: string): Promise<ParseResult> {
-    let text: string;
-    try { text = await file.text(); }
-    catch { return { ok: false, error: 'Could not read the selected file.' }; }
-
+  async function parseArtifactFromText(text: string, passphrase?: string): Promise<ParseResult> {
     let parsed: unknown;
     try { parsed = JSON.parse(text); }
     catch { return { ok: false, error: 'The file is not valid JSON. Make sure you selected a .mdlatex file.' }; }
@@ -195,6 +167,13 @@ export function useWorkspace(): UseWorkspaceReturn {
     }
 
     return { ok: true, artifact: migrated };
+  }
+
+  async function parseArtifactFromFile(file: File, passphrase?: string): Promise<ParseResult> {
+    let text: string;
+    try { text = await file.text(); }
+    catch { return { ok: false, error: 'Could not read the selected file.' }; }
+    return parseArtifactFromText(text, passphrase);
   }
 
   /**
@@ -253,7 +232,7 @@ export function useWorkspace(): UseWorkspaceReturn {
 
   // ── URL hash detection on mount ───────────────────────
 
-  async function checkUrlHash(): Promise<ImportResult | null> {
+  async function checkUrlHash(): Promise<UrlHashResult | null> {
     if (typeof window === 'undefined') return null;
     const hash = window.location.hash;
     if (!hash.startsWith(`#${URL_HASH_PREFIX}`)) return null;
@@ -266,7 +245,7 @@ export function useWorkspace(): UseWorkspaceReturn {
     // Clear hash from URL without triggering a reload
     window.history.replaceState(null, '', window.location.pathname + window.location.search);
 
-    return _parseAndLoad(json);
+    return { ok: true, text: json };
   }
 
   return {
@@ -277,6 +256,7 @@ export function useWorkspace(): UseWorkspaceReturn {
     exportWithPassword,
     exportAsZipFile,
     openImportPicker,
+    parseArtifactFromText,
     parseArtifactFromFile,
     commitImport,
     handleImportFile,
