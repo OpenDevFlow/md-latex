@@ -1,0 +1,113 @@
+import { Octokit } from '@octokit/rest';
+
+export interface GithubRepo {
+  name: string;
+  full_name: string;
+  owner: { login: string };
+  default_branch: string;
+}
+
+export interface SyncFile {
+  path: string;
+  content: string;
+}
+
+export async function getAuthenticatedUser(token: string) {
+  const octokit = new Octokit({ auth: token });
+  const { data } = await octokit.rest.users.getAuthenticated();
+  return data;
+}
+
+export async function getUserRepos(token: string): Promise<GithubRepo[]> {
+  const octokit = new Octokit({ auth: token });
+  const { data } = await octokit.rest.repos.listForAuthenticatedUser({
+    sort: 'updated',
+    per_page: 100,
+  });
+  return data as GithubRepo[];
+}
+
+export async function createRepo(token: string, name: string): Promise<GithubRepo> {
+  const octokit = new Octokit({ auth: token });
+  const { data } = await octokit.rest.repos.createForAuthenticatedUser({
+    name,
+    private: true,
+    auto_init: true, // Creates an initial commit so we have a base tree
+  });
+  return data as GithubRepo;
+}
+
+export async function commitWorkspace(
+  token: string,
+  owner: string,
+  repo: string,
+  branch: string,
+  files: SyncFile[],
+  message: string = 'Sync md-latex workspace'
+) {
+  const octokit = new Octokit({ auth: token });
+
+  // 1. Get the current reference
+  const refPath = `heads/${branch}`;
+  let refData;
+  try {
+    const { data } = await octokit.rest.git.getRef({
+      owner,
+      repo,
+      ref: refPath,
+    });
+    refData = data;
+  } catch (error) {
+    const err = error as { status?: number };
+    if (err.status === 404) {
+      // If auto_init was true, 'main' should exist. 
+      // If it fails, we might be dealing with an empty repo without auto_init.
+      throw new Error(`Branch ${branch} not found. Please ensure the repository is initialized.`);
+    }
+    throw error;
+  }
+
+  const latestCommitSha = refData.object.sha;
+
+  // 2. Get the commit to get its base tree
+  const { data: commitData } = await octokit.rest.git.getCommit({
+    owner,
+    repo,
+    commit_sha: latestCommitSha,
+  });
+  const baseTreeSha = commitData.tree.sha;
+
+  // 3. Create the new tree
+  const tree = files.map((file) => ({
+    path: file.path,
+    mode: '100644' as const,
+    type: 'blob' as const,
+    content: file.content,
+  }));
+
+  const { data: treeData } = await octokit.rest.git.createTree({
+    owner,
+    repo,
+    base_tree: baseTreeSha,
+    tree,
+  });
+
+  // 4. Create the new commit
+  const { data: newCommitData } = await octokit.rest.git.createCommit({
+    owner,
+    repo,
+    message,
+    tree: treeData.sha,
+    parents: [latestCommitSha],
+  });
+
+  // 5. Update the reference
+  await octokit.rest.git.updateRef({
+    owner,
+    repo,
+    ref: refPath,
+    sha: newCommitData.sha,
+  });
+
+  return newCommitData.sha;
+}

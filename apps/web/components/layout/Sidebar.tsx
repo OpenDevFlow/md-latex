@@ -326,7 +326,7 @@ export function Sidebar() {
     borderTop: '1px solid var(--color-border)',
     borderBottom: '1px solid var(--color-border)',
     flexShrink: 0,
-    zIndex: 10
+    zIndex: 1
   };
 
   return (

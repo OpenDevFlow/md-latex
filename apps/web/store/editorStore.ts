@@ -110,6 +110,11 @@ interface EditorState {
   activePane: ActivePane;
   theme: Theme;
   showSidebar: boolean;
+  
+  // GitHub Integration
+  githubToken: string | null;
+  githubUser: string | null;
+  githubRepo: string | null;
 
   // Document management
   documents: FileSystemItem[];
@@ -124,6 +129,11 @@ interface EditorState {
   setTheme: (theme: Theme) => void;
   toggleSidebar: () => void;
   setTranspilerOptions: (opts: Partial<TranspilerOptions>) => void;
+  
+  // GitHub actions
+  setGithubToken: (token: string | null) => void;
+  setGithubUser: (user: string | null) => void;
+  setGithubRepo: (repo: string | null) => void;
 
   // Document actions
   saveDocument: (title?: string) => void;
@@ -173,6 +183,9 @@ export const useEditorStore = create<EditorState>()(
       activePane: 'md',
       theme: 'dark',
       showSidebar: true,
+      githubToken: null,
+      githubUser: null,
+      githubRepo: null,
       documents: [
         {
           id: 'default-doc-id',
@@ -207,6 +220,11 @@ export const useEditorStore = create<EditorState>()(
         set((s) => ({
           transpilerOptions: { ...s.transpilerOptions, ...opts },
         })),
+        
+      // GitHub actions
+      setGithubToken: (githubToken) => set({ githubToken }),
+      setGithubUser: (githubUser) => set({ githubUser }),
+      setGithubRepo: (githubRepo) => set({ githubRepo }),
 
       // Document actions
       saveDocument: (title) => {
@@ -382,6 +400,9 @@ Start writing your markdown here...`;
         documents: state.documents,
         content: state.content,
         currentDocId: state.currentDocId,
+        githubToken: state.githubToken,
+        githubUser: state.githubUser,
+        githubRepo: state.githubRepo,
       }),
     },
   ),

@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **GitHub Cloud Sync & Backup**: Added the ability to sync and backup the entire workspace directly to a GitHub repository from the browser. It securely uses the GitHub Device Authorization Flow (proxied to bypass CORS restrictions natively on GitHub Pages) to handle OAuth without needing a backend server.
+- **Copy Device Code Button**: Added a copy-to-clipboard button right next to the GitHub device authorization code to improve UX.
+
+### Fixed
+- **Sidebar Separator Overlap**: Fixed a layout bug where the sidebar split-pane resize handles (separators) had an overly high `z-index`, causing them to inappropriately bleed through and render on top of modal overlays (like the GitHub Sync modal).
+- **Modal Component Padding Issues**: Fixed broken UI padding inside the `GithubSyncModal` by migrating non-functional generic Tailwind spacing utilities (e.g. `p-3`, `py-2`) to inline styles, restoring the intended clean aesthetic for error toasts, buttons, and loading states.
+- **Polling Loop Closure Bug**: Fixed a classic React stale closure bug that caused the GitHub Device Flow background polling to instantly cancel itself on the first tick due to evaluating the old `status === 'idle'` state. Safely migrated the cancellation check to a mutable `cancelAuthRef`.
 ## [1.1.0] - 2026-05-30
 
 ### Added
