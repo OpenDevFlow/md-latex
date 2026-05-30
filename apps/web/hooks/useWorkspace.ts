@@ -23,6 +23,10 @@ export type ImportResult =
   | { ok: true }
   | { ok: false; error: string; needsPassword?: boolean };
 
+export type ParseResult =
+  | { ok: true; artifact: WorkspaceArtifact }
+  | { ok: false; error: string; needsPassword?: boolean };
+
 export interface ShareResult {
   ok: boolean;
   url?: string;
@@ -38,6 +42,8 @@ export interface UseWorkspaceReturn {
   exportWithPassword: (passphrase: string) => Promise<void>;
   exportAsZipFile: () => void;
   openImportPicker: () => void;
+  parseArtifactFromFile: (file: File, passphrase?: string) => Promise<ParseResult>;
+  commitImport: (artifact: WorkspaceArtifact, selectedIds?: string[]) => void;
   handleImportFile: (file: File, passphrase?: string) => Promise<ImportResult>;
   shareViaUrl: (passphrase?: string) => Promise<ShareResult>;
   checkUrlHash: () => Promise<ImportResult | null>;
@@ -161,11 +167,61 @@ export function useWorkspace(): UseWorkspaceReturn {
     return { ok: true };
   }
 
-  async function handleImportFile(file: File, passphrase?: string): Promise<ImportResult> {
+  async function parseArtifactFromFile(file: File, passphrase?: string): Promise<ParseResult> {
     let text: string;
     try { text = await file.text(); }
     catch { return { ok: false, error: 'Could not read the selected file.' }; }
-    return _parseAndLoad(text, passphrase);
+
+    let parsed: unknown;
+    try { parsed = JSON.parse(text); }
+    catch { return { ok: false, error: 'The file is not valid JSON. Make sure you selected a .mdlatex file.' }; }
+
+    if (!validateWorkspaceArtifact(parsed)) {
+      return { ok: false, error: 'The file does not appear to be a valid md-latex workspace artifact.' };
+    }
+
+    if (isNewerVersion(parsed)) {
+      return { ok: false, error: `This workspace was created with a newer version of md-latex (format v${parsed.version}). Please update the app.` };
+    }
+
+    let migrated: WorkspaceArtifact;
+    try { migrated = migrateWorkspace(parsed); }
+    catch (err) { return { ok: false, error: `Migration failed: ${err instanceof Error ? err.message : String(err)}` }; }
+
+    if (migrated.encrypted) {
+      if (!passphrase) return { ok: false, error: 'This workspace is password-protected.', needsPassword: true };
+      try { migrated = await decryptArtifact(migrated, passphrase); }
+      catch (err) { return { ok: false, error: err instanceof Error ? err.message : 'Decryption failed.' }; }
+    }
+
+    return { ok: true, artifact: migrated };
+  }
+
+  /**
+   * Cherry-pick import: load a pre-parsed artifact into the store,
+   * optionally filtering to only the selected document IDs.
+   */
+  function commitImport(artifact: WorkspaceArtifact, selectedIds?: string[]) {
+    let toImport = artifact;
+    if (selectedIds && selectedIds.length > 0) {
+      const selectedSet = new Set(selectedIds);
+      toImport = {
+        ...artifact,
+        documents: (artifact.documents ?? []).filter(
+          (d) => d.type === 'folder' || selectedSet.has(d.id)
+        ),
+      };
+    }
+    pushSnapshot(buildArtifact()); // auto-snapshot before overwriting
+    importWorkspace(toImport);
+  }
+
+  async function handleImportFile(file: File, passphrase?: string): Promise<ImportResult> {
+    const result = await parseArtifactFromFile(file, passphrase);
+    if (!result.ok) return result;
+    pushSnapshot(buildArtifact());
+    importWorkspace(result.artifact);
+    return { ok: true };
   }
 
   // ── Share via URL ────────────────────────────────────
@@ -221,6 +277,8 @@ export function useWorkspace(): UseWorkspaceReturn {
     exportWithPassword,
     exportAsZipFile,
     openImportPicker,
+    parseArtifactFromFile,
+    commitImport,
     handleImportFile,
     shareViaUrl,
     checkUrlHash,
