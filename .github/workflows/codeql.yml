@@ -3,7 +3,7 @@ name: "CodeQL Security Scan"
 on:
   push:
     branches: [ "main" ]
-  pull_request:
+  pull_request_target:
     branches: [ "main" ]
   schedule:
     - cron: '30 4 * * 1' # Runs at 04:30 UTC every Monday
@@ -25,6 +25,8 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v6
+      with:
+        ref: ${{ github.event.pull_request.head.sha || github.sha }}
 
     - name: Initialize CodeQL
       uses: github/codeql-action/init@v3
