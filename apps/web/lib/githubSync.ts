@@ -13,13 +13,23 @@ export interface SyncFile {
 }
 
 export async function getAuthenticatedUser(token: string) {
-  const octokit = new Octokit({ auth: token });
+  const octokit = new Octokit({ 
+    auth: token,
+    headers: {
+      'X-GitHub-Api-Version': '2022-11-28'
+    }
+  });
   const { data } = await octokit.rest.users.getAuthenticated();
   return data;
 }
 
 export async function getUserRepos(token: string): Promise<GithubRepo[]> {
-  const octokit = new Octokit({ auth: token });
+  const octokit = new Octokit({ 
+    auth: token,
+    headers: {
+      'X-GitHub-Api-Version': '2022-11-28'
+    }
+  });
   const { data } = await octokit.rest.repos.listForAuthenticatedUser({
     sort: 'updated',
     per_page: 100,
@@ -28,7 +38,12 @@ export async function getUserRepos(token: string): Promise<GithubRepo[]> {
 }
 
 export async function createRepo(token: string, name: string): Promise<GithubRepo> {
-  const octokit = new Octokit({ auth: token });
+  const octokit = new Octokit({ 
+    auth: token,
+    headers: {
+      'X-GitHub-Api-Version': '2022-11-28'
+    }
+  });
   const { data } = await octokit.rest.repos.createForAuthenticatedUser({
     name,
     private: true,
@@ -45,7 +60,12 @@ export async function commitWorkspace(
   files: SyncFile[],
   message: string = 'Sync md-latex workspace'
 ) {
-  const octokit = new Octokit({ auth: token });
+  const octokit = new Octokit({ 
+    auth: token,
+    headers: {
+      'X-GitHub-Api-Version': '2022-11-28'
+    }
+  });
 
   // 1. Get the current reference
   const refPath = `heads/${branch}`;
@@ -118,7 +138,12 @@ export interface GithubBranch {
 }
 
 export async function getBranches(token: string, owner: string, repo: string): Promise<GithubBranch[]> {
-  const octokit = new Octokit({ auth: token });
+  const octokit = new Octokit({ 
+    auth: token,
+    headers: {
+      'X-GitHub-Api-Version': '2022-11-28'
+    }
+  });
   const { data } = await octokit.rest.repos.listBranches({
     owner,
     repo,
@@ -128,7 +153,12 @@ export async function getBranches(token: string, owner: string, repo: string): P
 }
 
 export async function createBranch(token: string, owner: string, repo: string, branchName: string, sha: string) {
-  const octokit = new Octokit({ auth: token });
+  const octokit = new Octokit({ 
+    auth: token,
+    headers: {
+      'X-GitHub-Api-Version': '2022-11-28'
+    }
+  });
   const { data } = await octokit.rest.git.createRef({
     owner,
     repo,
@@ -147,7 +177,12 @@ export interface GithubCommit {
 }
 
 export async function getCommits(token: string, owner: string, repo: string, branch: string): Promise<GithubCommit[]> {
-  const octokit = new Octokit({ auth: token });
+  const octokit = new Octokit({ 
+    auth: token,
+    headers: {
+      'X-GitHub-Api-Version': '2022-11-28'
+    }
+  });
   const { data } = await octokit.rest.repos.listCommits({
     owner,
     repo,
@@ -158,7 +193,12 @@ export async function getCommits(token: string, owner: string, repo: string, bra
 }
 
 export async function getWorkspaceFromCommit(token: string, owner: string, repo: string, commitSha: string): Promise<string> {
-  const octokit = new Octokit({ auth: token });
+  const octokit = new Octokit({ 
+    auth: token,
+    headers: {
+      'X-GitHub-Api-Version': '2022-11-28'
+    }
+  });
   
   // We need to fetch the file content from a specific commit.
   try {
