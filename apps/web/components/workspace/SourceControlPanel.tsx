@@ -19,6 +19,8 @@ export function SourceControlPanel() {
   const [showSyncModal, setShowSyncModal] = useState(false);
   const [syncing, setSyncing] = useState(false);
   
+  const [confirmCheckoutSha, setConfirmCheckoutSha] = useState<string | null>(null);
+  
   const loadData = React.useCallback(async () => {
     if (!githubToken || !githubRepo) return;
     const [owner, repo] = githubRepo.split('/');
@@ -56,7 +58,7 @@ export function SourceControlPanel() {
       return;
     }
     const latestCommitSha = commits[0].sha;
-    await handleCheckout(latestCommitSha);
+    setConfirmCheckoutSha(latestCommitSha);
   };
 
   const handleCreateBranch = async () => {
@@ -119,11 +121,14 @@ export function SourceControlPanel() {
     }
   };
 
-  const handleCheckout = async (commitSha: string) => {
+  const handleCheckout = (commitSha: string) => {
     if (!githubToken || !githubRepo) return;
-    if (!confirm('This will replace your current workspace with the state from this commit. Unsaved changes will be lost (an auto-snapshot will be taken). Continue?')) {
-      return;
-    }
+    setConfirmCheckoutSha(commitSha);
+  };
+
+  const performCheckout = async (commitSha: string) => {
+    setConfirmCheckoutSha(null);
+    if (!githubToken || !githubRepo) return;
     
     const [owner, repo] = githubRepo.split('/');
     setLoading(true);
@@ -278,6 +283,46 @@ export function SourceControlPanel() {
       </div>
       
       {showSyncModal && <GithubSyncModal onClose={() => setShowSyncModal(false)} />}
+      
+      {confirmCheckoutSha && (
+        <div className="fixed inset-0 z-[150] flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div 
+            className="bg-surface border border-border rounded-xl shadow-xl flex flex-col overflow-hidden animate-dropIn max-w-sm w-full mx-4"
+          >
+            <div className="flex items-center gap-3 border-b border-border" style={{ padding: '16px 20px' }}>
+              <div className="w-8 h-8 rounded-full bg-warning/20 flex items-center justify-center shrink-0">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-warning">
+                  <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+                </svg>
+              </div>
+              <h2 className="text-base font-semibold text-text m-0">Confirm Checkout</h2>
+            </div>
+            <div style={{ padding: '20px' }}>
+              <p className="text-sm text-text-muted m-0 leading-relaxed">
+                This will completely replace your current workspace with the state from this commit. Unsaved changes will be lost (though an auto-snapshot will be taken).
+                <br/><br/>
+                Are you sure you want to continue?
+              </p>
+            </div>
+            <div className="border-t border-border bg-surface-2 flex items-center justify-end gap-3" style={{ padding: '12px 20px' }}>
+              <button
+                onClick={() => setConfirmCheckoutSha(null)}
+                className="text-sm font-medium text-text-muted hover:text-text transition-colors"
+                style={{ padding: '8px 16px' }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => performCheckout(confirmCheckoutSha)}
+                className="bg-warning hover:bg-warning/90 text-white text-sm font-medium transition-colors rounded-lg shadow-sm"
+                style={{ padding: '8px 16px' }}
+              >
+                Checkout
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
