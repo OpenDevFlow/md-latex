@@ -29,6 +29,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Import Selected button not working**: The diff modal was shown with a hardcoded empty artifact before the file was parsed, causing all existing files to appear as "Removed" and 0 files to be importable. The import flow now parses and validates the file first, then shows the real diff. Cherry-pick selection is correctly applied via `commitImport` before loading the workspace
 - **`frontmatter.date.replace is not a function` crash**: js-yaml parses certain date formats (e.g. `20/10/2022`) as native `Date` objects rather than strings. The date handling in the transpiler now coerces all values to string via `String()` before calling `.replace()`, making all date formats safe: ISO dates, DD/MM/YYYY, plain text, `\today`, and numeric years
+- **Sidebar scrolling issues**: Rebuilt the sidebar layout to act as a single scrollable column with sticky section headers. This resolves scroll issues (especially in the Workspaces section) and replaces the buggy flexbox section resizing.
+- **Save Workspace button overflow**: Added `minWidth: 0` to the workspace save input field to prevent it from ignoring flex constraints and pushing the "Save" button out of bounds.
 
 ## [1.0.0] - 2026-05-29
 
