@@ -1,6 +1,4 @@
-'use client';
-
-import React, { useMemo, useState, useEffect, useRef } from 'react';
+import React, { useMemo, useState, useEffect, useRef, useCallback } from 'react';
 import { useEditorStore } from '@/store/editorStore';
 import { WorkspaceSwitcherPanel } from '@/components/workspace/WorkspaceSwitcherPanel';
 import { WorkspaceHistoryPanel } from '@/components/workspace/WorkspaceHistoryPanel';
@@ -170,9 +168,6 @@ export function Sidebar() {
   const moveItem = useEditorStore((s) => s.moveItem);
   const content = useEditorStore((s) => s.content);
 
-  const [treeExpanded, setTreeExpanded] = useState(true);
-  const [outlineExpanded, setOutlineExpanded] = useState(true);
-
   // Renaming state
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState('');
@@ -190,6 +185,71 @@ export function Sidebar() {
   }, []);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Custom Split logic
+  const [heights, setHeights] = useState({ tree: 40, outline: 30, workspaces: 30 });
+  const dragging = useRef<{ divider: 'tree-outline' | 'outline-workspaces'; startY: number; startHeights: { tree: number; outline: number; workspaces: number } } | null>(null);
+
+  const onMouseDown = useCallback((divider: 'tree-outline' | 'outline-workspaces') => (e: React.MouseEvent) => {
+    e.preventDefault();
+    dragging.current = {
+      divider,
+      startY: e.clientY,
+      startHeights: { ...heights }
+    };
+  }, [heights]);
+
+  useEffect(() => {
+    function onMouseMove(e: MouseEvent) {
+      if (!dragging.current || !containerRef.current) return;
+      const containerHeight = containerRef.current.offsetHeight;
+      const dy = e.clientY - dragging.current.startY;
+      const dyPct = (dy / containerHeight) * 100;
+      const minPct = (40 / containerHeight) * 100; // ~40px min height (header size)
+
+      const { divider, startHeights } = dragging.current;
+
+      if (divider === 'tree-outline') {
+        let newTree = startHeights.tree + dyPct;
+        let newOutline = startHeights.outline - dyPct;
+
+        if (newTree < minPct) {
+          newOutline -= (minPct - newTree);
+          newTree = minPct;
+        } else if (newOutline < minPct) {
+          newTree -= (minPct - newOutline);
+          newOutline = minPct;
+        }
+
+        setHeights({ tree: newTree, outline: newOutline, workspaces: startHeights.workspaces });
+      } else {
+        let newOutline = startHeights.outline + dyPct;
+        let newWorkspaces = startHeights.workspaces - dyPct;
+
+        if (newOutline < minPct) {
+          newWorkspaces -= (minPct - newOutline);
+          newOutline = minPct;
+        } else if (newWorkspaces < minPct) {
+          newOutline -= (minPct - newWorkspaces);
+          newWorkspaces = minPct;
+        }
+
+        setHeights({ tree: startHeights.tree, outline: newOutline, workspaces: newWorkspaces });
+      }
+    }
+
+    function onMouseUp() {
+      dragging.current = null;
+    }
+
+    window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('mouseup', onMouseUp);
+    return () => {
+      window.removeEventListener('mousemove', onMouseMove);
+      window.removeEventListener('mouseup', onMouseUp);
+    };
+  }, [heights]);
 
   if (!showSidebar || isMobile) return null;
 
@@ -219,23 +279,24 @@ export function Sidebar() {
     e.target.value = '';
   };
 
+  const dividerStyle = {
+    height: '4px',
+    cursor: 'row-resize',
+    backgroundColor: 'var(--color-surface-1)',
+    borderTop: '1px solid var(--color-border)',
+    borderBottom: '1px solid var(--color-border)',
+    flexShrink: 0,
+    zIndex: 10
+  };
+
   return (
-    <div className="sidebar" aria-label="Sidebar">
+    <div className="sidebar" aria-label="Sidebar" ref={containerRef}>
       {/* File Tree Section */}
-      <div className="sidebar-section file-tree-section">
-        <div className="sidebar-header">
-          <button 
-            className="flex items-center gap-2 flex-1" 
-            onClick={() => setTreeExpanded(!treeExpanded)}
-          >
-            <svg
-              className={`transition-transform ${treeExpanded ? '' : '-rotate-90'}`}
-              width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
-            >
-              <polyline points="6 9 12 15 18 9" />
-            </svg>
+      <div className="sidebar-section file-tree-section" style={{ height: `calc(${heights.tree}% - 2px)` }}>
+        <div className="sidebar-header cursor-default">
+          <div className="flex items-center gap-2 flex-1">
             <span className="font-semibold text-sm">File tree</span>
-          </button>
+          </div>
           <div className="sidebar-actions flex items-center gap-3 text-text-muted">
             <button title="New File" aria-label="New File" onClick={() => newDocument()} className="hover:text-text transition-colors">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -267,144 +328,121 @@ export function Sidebar() {
           </div>
         </div>
         
-        {treeExpanded && (
-          <div 
-            className="sidebar-content file-list flex-1 min-h-[100px]"
-            onDragOver={(e) => {
-              e.preventDefault(); // allow drop
-            }}
-            onDrop={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              const draggedId = e.dataTransfer.getData('text/plain');
-              if (draggedId) {
-                // If it's dropped in the root container and not caught by a folder
-                moveItem(draggedId, null);
-              }
-            }}
-          >
-            {documents.length === 0 ? (
-              <div className="text-xs text-text-faint italic px-2">No documents saved.</div>
-            ) : (
-              <FileTree 
-                level={0} 
-                parentId={null} 
-                editingId={editingId}
-                setEditingId={setEditingId}
-                editTitle={editTitle}
-                setEditTitle={setEditTitle}
-              />
-            )}
-          </div>
-        )}
+        <div 
+          className="sidebar-content file-list flex-1"
+          onDragOver={(e) => e.preventDefault()}
+          onDrop={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const draggedId = e.dataTransfer.getData('text/plain');
+            if (draggedId) {
+              moveItem(draggedId, null);
+            }
+          }}
+        >
+          {documents.length === 0 ? (
+            <div className="text-xs text-text-faint italic px-2">No documents saved.</div>
+          ) : (
+            <FileTree 
+              level={0} 
+              parentId={null} 
+              editingId={editingId}
+              setEditingId={setEditingId}
+              editTitle={editTitle}
+              setEditTitle={setEditTitle}
+            />
+          )}
+        </div>
       </div>
 
-      <div className="sidebar-divider" />
+      <div 
+        style={dividerStyle}
+        className="hover:bg-accent transition-colors"
+        onMouseDown={onMouseDown('tree-outline')}
+      />
 
       {/* File Outline Section */}
-      <div className="sidebar-section file-outline-section">
-        <div className="sidebar-header">
-          <button 
-            className="flex items-center gap-2 flex-1" 
-            onClick={() => setOutlineExpanded(!outlineExpanded)}
-          >
-            <svg
-              className={`transition-transform ${outlineExpanded ? '' : '-rotate-90'}`}
-              width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
-            >
-              <polyline points="6 9 12 15 18 9" />
-            </svg>
+      <div className="sidebar-section file-outline-section" style={{ height: `calc(${heights.outline}% - 4px)` }}>
+        <div className="sidebar-header cursor-default">
+          <div className="flex items-center gap-2 flex-1">
             <span className="font-semibold text-sm">File outline</span>
-          </button>
+          </div>
         </div>
         
-        {outlineExpanded && (
-          <div className="sidebar-content outline-list">
-            {headings.length === 0 ? (
-              <div className="text-xs text-text-faint italic px-2">No headings in document.</div>
-            ) : (
-              headings.map((heading, i) => {
-                // To keep it simple, treat H1 and H2 as top level items in the outline.
-                const isTopLevel = heading.level <= 2;
-                const indentClass = isTopLevel ? '' : 'pl-6 border-l border-border ml-2 my-1 text-text-muted';
-                
-                return (
-                  <div key={i}>
-                    {isTopLevel && (
-                      <div className="flex items-center gap-2 text-sm text-text-muted mt-2 mb-1">
-                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <polyline points="6 9 12 15 18 9" />
-                        </svg>
-                        <span className="truncate">{heading.text}</span>
-                      </div>
-                    )}
-                    {!isTopLevel && (
-                      <div className={`outline-item ${indentClass} truncate hover:bg-surface-3 py-1 px-2 rounded cursor-pointer transition-colors text-sm`}>
-                        {heading.text}
-                      </div>
-                    )}
-                  </div>
-                );
-              })
-            )}
-          </div>
-        )}
+        <div className="sidebar-content outline-list flex-1">
+          {headings.length === 0 ? (
+            <div className="text-xs text-text-faint italic px-2">No headings in document.</div>
+          ) : (
+            headings.map((heading, i) => {
+              const isTopLevel = heading.level <= 2;
+              const indentClass = isTopLevel ? '' : 'pl-6 border-l border-border ml-2 my-1 text-text-muted';
+              
+              return (
+                <div key={i}>
+                  {isTopLevel && (
+                    <div className="flex items-center gap-2 text-sm text-text-muted mt-2 mb-1">
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <polyline points="6 9 12 15 18 9" />
+                      </svg>
+                      <span className="truncate">{heading.text}</span>
+                    </div>
+                  )}
+                  {!isTopLevel && (
+                    <div className={`outline-item ${indentClass} truncate hover:bg-surface-3 py-1 px-2 rounded cursor-pointer transition-colors text-sm`}>
+                      {heading.text}
+                    </div>
+                  )}
+                </div>
+              );
+            })
+          )}
+        </div>
       </div>
 
-      <div className="sidebar-divider" />
+      <div 
+        style={dividerStyle}
+        className="hover:bg-accent transition-colors"
+        onMouseDown={onMouseDown('outline-workspaces')}
+      />
 
       {/* Workspaces Section */}
-      <WorkspacesSidebarSection />
+      <WorkspacesSidebarSection height={`calc(${heights.workspaces}% - 2px)`} />
     </div>
   );
 }
 
-function WorkspacesSidebarSection() {
-  const [expanded, setExpanded] = useState(false);
+function WorkspacesSidebarSection({ height }: { height: string }) {
   const [tab, setTab] = useState<'saved' | 'history'>('saved');
 
   return (
-    <div className="sidebar-section">
-      <div className="sidebar-header">
-        <button
-          className="flex items-center gap-2 flex-1"
-          onClick={() => setExpanded(!expanded)}
-        >
-          <svg
-            className={`transition-transform ${expanded ? '' : '-rotate-90'}`}
-            width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
-          >
-            <polyline points="6 9 12 15 18 9" />
-          </svg>
+    <div className="sidebar-section" style={{ height }}>
+      <div className="sidebar-header cursor-default">
+        <div className="flex items-center gap-2 flex-1">
           <span className="font-semibold text-sm">Workspaces</span>
-        </button>
+        </div>
       </div>
 
-      {expanded && (
-        <>
-          {/* Tabs — sticky via sidebar-header z-index */}
-          <div style={{ display: 'flex', borderBottom: '1px solid var(--color-border)', flexShrink: 0, background: 'var(--color-surface-2)' }}>
-            {(['saved', 'history'] as const).map((t) => (
-              <button
-                key={t}
-                onClick={() => setTab(t)}
-                style={{
-                  flex: 1, padding: '7px 0', fontSize: '12px', fontWeight: 600,
-                  background: 'none', border: 'none', cursor: 'pointer', transition: 'color 0.15s',
-                  color: tab === t ? 'var(--color-accent)' : 'var(--color-text-muted)',
-                  borderBottom: tab === t ? '2px solid var(--color-accent)' : '2px solid transparent',
-                }}
-              >
-                {t === 'saved' ? 'Saved' : 'History'}
-              </button>
-            ))}
-          </div>
+      {/* Tabs — sticky via sidebar-header z-index */}
+      <div style={{ display: 'flex', borderBottom: '1px solid var(--color-border)', flexShrink: 0, background: 'var(--color-surface-2)' }}>
+        {(['saved', 'history'] as const).map((t) => (
+          <button
+            key={t}
+            onClick={() => setTab(t)}
+            style={{
+              flex: 1, padding: '7px 0', fontSize: '12px', fontWeight: 600,
+              background: 'none', border: 'none', cursor: 'pointer', transition: 'color 0.15s',
+              color: tab === t ? 'var(--color-accent)' : 'var(--color-text-muted)',
+              borderBottom: tab === t ? '2px solid var(--color-accent)' : '2px solid transparent',
+            }}
+          >
+            {t === 'saved' ? 'Saved' : 'History'}
+          </button>
+        ))}
+      </div>
 
-          <div className="sidebar-content">
-            {tab === 'saved' ? <WorkspaceSwitcherPanel /> : <WorkspaceHistoryPanel />}
-          </div>
-        </>
-      )}
+      <div className="sidebar-content flex-1">
+        {tab === 'saved' ? <WorkspaceSwitcherPanel /> : <WorkspaceHistoryPanel />}
+      </div>
     </div>
   );
 }
