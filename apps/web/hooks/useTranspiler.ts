@@ -103,7 +103,10 @@ async function renderPreview(markdown: string, frontmatter: Frontmatter): Promis
       if (frontmatter.date instanceof Date) {
         dateStr = frontmatter.date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
       } else {
-        dateStr = frontmatter.date.replace('\\today', new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }));
+        // js-yaml may parse dates like 20/10/2022 as Date objects.
+        // Always coerce to string before calling string methods.
+        const rawDate = String(frontmatter.date);
+        dateStr = rawDate.replace('\\today', new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }));
       }
     }
     const escapedDate = dateStr ? escapeHtml(dateStr) : '';
