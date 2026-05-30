@@ -19,10 +19,11 @@ export default function EditorPage() {
 
   const theme = useEditorStore((s) => s.theme);
   const documents = useEditorStore((s) => s.documents);
-  const { handleImportFile, checkUrlHash } = useWorkspace();
+  const { handleImportFile, parseArtifactFromFile, commitImport, checkUrlHash } = useWorkspace();
 
   const [isDragging, setIsDragging] = useState(false);
   const [dropFile, setDropFile] = useState<File | null>(null);
+  const [dropArtifact, setDropArtifact] = useState<import('@/types/workspace').WorkspaceArtifact | null>(null);
   const [showDiff, setShowDiff] = useState(false);
   const [showPasswordEnter, setShowPasswordEnter] = useState(false);
   const [dropStatus, setDropStatus] = useState<'idle' | 'success' | 'error'>('idle');
@@ -62,19 +63,32 @@ export default function EditorPage() {
       (f) => f.name.endsWith('.mdlatex') || f.type === 'application/json'
     );
     if (!file) return;
-    setDropFile(file);
-    setShowDiff(true);
-  }, []);
+    // Parse before showing diff
+    parseArtifactFromFile(file).then((result) => {
+      if (!result.ok) {
+        if (result.needsPassword) {
+          setDropFile(file);
+          setShowPasswordEnter(true);
+        } else {
+          setDropError(result.error);
+          setDropStatus('error');
+          setTimeout(() => setDropStatus('idle'), 5000);
+        }
+        return;
+      }
+      setDropFile(file);
+      setDropArtifact(result.artifact);
+      setShowDiff(true);
+    });
+  }, [parseArtifactFromFile]);
 
   async function runDropImport(passphrase?: string) {
     if (!dropFile) return;
-    const result = await handleImportFile(dropFile, passphrase);
+    const result = await parseArtifactFromFile(dropFile, passphrase);
     if (result.ok) {
+      setDropArtifact(result.artifact);
       setDropFile(null);
-      setDropStatus('success');
-      setTimeout(() => setDropStatus('idle'), 3000);
-    } else if (!result.ok && result.needsPassword) {
-      setShowPasswordEnter(true);
+      setShowDiff(true);
     } else {
       setDropFile(null);
       setDropError(result.error);
@@ -137,12 +151,19 @@ export default function EditorPage() {
         )}
 
         {/* Drop diff modal */}
-        {showDiff && dropFile && (
+        {showDiff && dropArtifact && (
           <WorkspaceDiffModal
-            incoming={{ version: 2, exportedAt: '', label: dropFile.name, description: '', tags: [], wordCount: 0, encrypted: false, documents: [], currentDocId: null, content: '', transpilerOptions: undefined as never, layout: '3-pane', theme: 'dark', showSidebar: true }}
+            incoming={dropArtifact}
             currentDocs={documents}
-            onCancel={() => { setShowDiff(false); setDropFile(null); }}
-            onConfirm={() => { setShowDiff(false); runDropImport(); }}
+            onCancel={() => { setShowDiff(false); setDropFile(null); setDropArtifact(null); }}
+            onConfirm={(selectedIds) => {
+              setShowDiff(false);
+              commitImport(dropArtifact, selectedIds);
+              setDropFile(null);
+              setDropArtifact(null);
+              setDropStatus('success');
+              setTimeout(() => setDropStatus('idle'), 3000);
+            }}
           />
         )}
 
