@@ -154,7 +154,7 @@ export function useExport() {
             if (!href || href === 'about:blank' || href === '') {
               return; // Ignore initial blank load
             }
-          } catch (_e) {
+          } catch {
             // SecurityError means it successfully navigated to the cross-origin texlive.net!
           }
           if (timeoutId) clearTimeout(timeoutId);
