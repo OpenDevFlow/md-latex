@@ -42,7 +42,7 @@ export interface UseWorkspaceReturn {
   importInputRef: React.RefObject<HTMLInputElement | null>;
   wordCount: number;
   buildArtifact: () => WorkspaceArtifact;
-  exportWorkspace: () => void;
+  exportWorkspace: (overrideArtifact?: WorkspaceArtifact) => void;
   exportWithPassword: (passphrase: string) => Promise<void>;
   exportAsZipFile: () => void;
   openImportPicker: () => void;
@@ -78,7 +78,13 @@ export function useWorkspace(): UseWorkspaceReturn {
   // ── Build artifact ────────────────────────────────────
 
   function buildArtifact(): WorkspaceArtifact {
-    const allWords = documents
+    const updatedDocuments = [...documents];
+    const currentIndex = updatedDocuments.findIndex((d) => d.id === currentDocId);
+    if (currentIndex !== -1) {
+      updatedDocuments[currentIndex] = { ...updatedDocuments[currentIndex], content };
+    }
+
+    const allWords = updatedDocuments
       .filter((d) => d.type !== 'folder' && d.type !== 'bib')
       .map((d) => d.content)
       .join(' ');
@@ -92,7 +98,7 @@ export function useWorkspace(): UseWorkspaceReturn {
       tags: [],
       wordCount: wc,
       encrypted: false,
-      documents,
+      documents: updatedDocuments,
       currentDocId,
       content,
       transpilerOptions: transpilerOpts,
@@ -116,8 +122,8 @@ export function useWorkspace(): UseWorkspaceReturn {
 
   // ── Export (plain) ────────────────────────────────────
 
-  function exportWorkspace() {
-    const artifact  = buildArtifact();
+  function exportWorkspace(overrideArtifact?: WorkspaceArtifact) {
+    const artifact  = overrideArtifact ?? buildArtifact();
     const timestamp = new Date().toISOString().slice(0, 10);
     downloadJson(artifact, `md-latex-workspace-${timestamp}${WORKSPACE_EXTENSION}`);
   }
@@ -184,11 +190,29 @@ export function useWorkspace(): UseWorkspaceReturn {
     let toImport = artifact;
     if (selectedIds && selectedIds.length > 0) {
       const selectedSet = new Set(selectedIds);
+      const keptDocs = (artifact.documents ?? []).filter(
+        (d) => d.type === 'folder' || selectedSet.has(d.id)
+      );
+      
+      let nextDocId = artifact.currentDocId;
+      let nextContent = artifact.content;
+      if (!keptDocs.some(d => d.id === nextDocId)) {
+        const firstFile = keptDocs.find(d => d.type !== 'folder');
+        nextDocId = firstFile ? firstFile.id : null;
+        nextContent = firstFile ? firstFile.content : '';
+      }
+
+      let nextTranspilerOpts = artifact.transpilerOptions;
+      if (nextTranspilerOpts?.bibliographyId && !keptDocs.some(d => d.id === nextTranspilerOpts?.bibliographyId)) {
+        nextTranspilerOpts = { ...nextTranspilerOpts, bibliographyId: null };
+      }
+
       toImport = {
         ...artifact,
-        documents: (artifact.documents ?? []).filter(
-          (d) => d.type === 'folder' || selectedSet.has(d.id)
-        ),
+        documents: keptDocs,
+        currentDocId: nextDocId,
+        content: nextContent,
+        transpilerOptions: nextTranspilerOpts,
       };
     }
     pushSnapshot(buildArtifact()); // auto-snapshot before overwriting

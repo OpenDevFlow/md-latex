@@ -50,7 +50,12 @@ export async function compressToBase64url(json: string): Promise<string> {
     offset += chunk.length;
   }
 
-  const b64 = btoa(String.fromCharCode(...buf));
+  let binaryStr = '';
+  const chunkSize = 0x8000;
+  for (let i = 0; i < buf.length; i += chunkSize) {
+    binaryStr += String.fromCharCode.apply(null, buf.subarray(i, i + chunkSize) as unknown as number[]);
+  }
+  const b64 = btoa(binaryStr);
   return toBase64url(b64);
 }
 

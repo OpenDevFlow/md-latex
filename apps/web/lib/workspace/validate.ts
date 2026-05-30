@@ -22,6 +22,10 @@ export function validateWorkspaceArtifact(data: unknown): data is WorkspaceArtif
   } else {
     // Plain artifact must have documents array
     if (!Array.isArray(d.documents)) return false;
+    if (typeof d.description !== 'string') return false;
+    if (!Array.isArray(d.tags) || !d.tags.every(t => typeof t === 'string')) return false;
+    if (typeof d.wordCount !== 'number') return false;
+    if (typeof d.transpilerOptions !== 'object' || d.transpilerOptions === null) return false;
     if (d.currentDocId !== null && typeof d.currentDocId !== 'string') return false;
     if (typeof d.content !== 'string') return false;
     for (const doc of d.documents as unknown[]) {

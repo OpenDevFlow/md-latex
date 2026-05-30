@@ -6,6 +6,7 @@ import type { WorkspaceArtifact, SavedWorkspace } from '@/types/workspace';
 
 const MAX_SNAPSHOTS = 5;
 const MAX_SNAPSHOT_JSON_BYTES = 400_000; // 400 KB guard
+const MAX_SAVED_WORKSPACE_BYTES = 5_000_000; // 5 MB limit for named workspaces
 
 // ──────────────────────────────────────────────────────────
 // State interface
@@ -45,6 +46,12 @@ export const useWorkspacesStore = create<WorkspacesState>()(
           savedAt: new Date().toISOString(),
           artifact,
         };
+
+        const byteLen = new TextEncoder().encode(JSON.stringify(entry)).length;
+        if (byteLen > MAX_SAVED_WORKSPACE_BYTES) {
+          throw new Error('Workspace is too large to save (exceeds 5MB).');
+        }
+
         set((s) => ({
           savedWorkspaces: { ...s.savedWorkspaces, [id]: entry },
         }));
@@ -72,7 +79,8 @@ export const useWorkspacesStore = create<WorkspacesState>()(
 
       pushSnapshot: (artifact) => {
         const json = JSON.stringify(artifact);
-        if (json.length > MAX_SNAPSHOT_JSON_BYTES) return; // size guard
+        const byteLen = new TextEncoder().encode(json).length;
+        if (byteLen > MAX_SNAPSHOT_JSON_BYTES) return; // size guard
 
         const snapshots = [artifact, ...get().snapshots].slice(0, MAX_SNAPSHOTS);
         set({ snapshots });

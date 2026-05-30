@@ -84,29 +84,39 @@ export function Toolbar() {
     setShowDiffModal(true);
   }
 
-  async function runImport(passphrase?: string) {
-    if (!pendingImportFile.current) return;
+  async function runImport(passphrase?: string): Promise<boolean> {
+    if (!pendingImportFile.current) return false;
     const result = await parseArtifactFromFile(pendingImportFile.current, passphrase);
     if (result.ok) {
       setPendingArtifact(result.artifact);
       pendingImportFile.current = null;
       setShowDiffModal(true);
+      return true;
     } else {
+      if (passphrase) {
+        return false;
+      }
       pendingImportFile.current = null;
       setImportError(result.error);
       setImportStatus('error');
       setTimeout(() => setImportStatus('idle'), 5000);
+      return false;
     }
   }
 
   async function handlePasswordExport(passphrase: string) {
-    setShowPasswordSet(false);
     if (passwordExportTarget === 'file') {
+      setShowPasswordSet(false);
       await exportWithPassword(passphrase);
     } else {
       const result = await shareViaUrl(passphrase);
       if (result.ok && result.url) {
+        setShowPasswordSet(false);
         setShareResult({ url: result.url, warning: result.warning, protected: true });
+      } else {
+        setImportError(result.error ?? 'Failed to share URL');
+        setImportStatus('error');
+        setTimeout(() => setImportStatus('idle'), 5000);
       }
     }
   }
@@ -116,6 +126,10 @@ export function Toolbar() {
     const result = await shareViaUrl();
     if (result.ok && result.url) {
       setShareResult({ url: result.url, warning: result.warning, protected: false });
+    } else {
+      setImportError(result.error ?? 'Failed to share URL');
+      setImportStatus('error');
+      setTimeout(() => setImportStatus('idle'), 5000);
     }
   }
 
@@ -375,8 +389,19 @@ export function Toolbar() {
       {showPasswordEnter && (
         <PasswordModal
           mode="enter"
-          onConfirm={(p) => { setShowPasswordEnter(false); runImport(p); }}
+          onConfirm={async (p) => { 
+            const success = await runImport(p); 
+            if (success) setShowPasswordEnter(false);
+            return success;
+          }}
           onCancel={() => { setShowPasswordEnter(false); pendingImportFile.current = null; }}
+          onMaxRetries={() => {
+            setShowPasswordEnter(false);
+            pendingImportFile.current = null;
+            setImportError('Maximum password attempts exceeded.');
+            setImportStatus('error');
+            setTimeout(() => setImportStatus('idle'), 5000);
+          }}
         />
       )}
 

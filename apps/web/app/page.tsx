@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
+import Image from 'next/image';
 import { Toolbar } from '@/components/editor/Toolbar';
 import { SplitLayout } from '@/components/layout/SplitLayout';
 import { Sidebar } from '@/components/layout/Sidebar';
@@ -141,10 +142,11 @@ export default function EditorPage() {
         data-theme={theme}
       >
         <div className="max-w-md flex flex-col items-center">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
+          <Image
             src={`${process.env.NEXT_PUBLIC_BASE_PATH || ''}/logo.png`}
             alt="md-latex logo"
+            width={80}
+            height={80}
             className="w-20 h-20 rounded-xl object-cover shadow-lg"
             style={{ marginBottom: '24px' }}
           />

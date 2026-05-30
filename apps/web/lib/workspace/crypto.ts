@@ -5,7 +5,13 @@ import type { WorkspaceArtifact, WorkspacePayload } from '@/types/workspace';
 // ──────────────────────────────────────────────────────────
 
 function bufToBase64(buf: ArrayBuffer): string {
-  return btoa(String.fromCharCode(...new Uint8Array(buf)));
+  const u8 = new Uint8Array(buf);
+  let binaryStr = '';
+  const chunkSize = 0x8000;
+  for (let i = 0; i < u8.length; i += chunkSize) {
+    binaryStr += String.fromCharCode.apply(null, u8.subarray(i, i + chunkSize) as unknown as number[]);
+  }
+  return btoa(binaryStr);
 }
 
 function base64ToBuf(b64: string): Uint8Array {
@@ -62,8 +68,8 @@ export async function encryptArtifact(
   );
 
   // Return artifact with sensitive fields replaced
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { documents: _d, currentDocId: _c, content: _co, transpilerOptions: _t, ...rest } = artifact;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any
+  const rest = (({ documents, currentDocId, content, transpilerOptions, ...r }: any) => r)(artifact);
   return {
     ...rest,
     encrypted: true,
@@ -100,8 +106,8 @@ export async function decryptArtifact(
   const dec = new TextDecoder();
   const payload: WorkspacePayload = JSON.parse(dec.decode(plainBuf));
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { ciphertext: _ci, iv: _iv, salt: _s, ...rest } = artifact;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any
+  const rest = (({ ciphertext, iv, salt, ...r }: any) => r)(artifact);
   return {
     ...rest,
     encrypted: false,

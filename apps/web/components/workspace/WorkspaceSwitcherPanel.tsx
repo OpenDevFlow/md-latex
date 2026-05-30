@@ -131,7 +131,7 @@ export function WorkspaceSwitcherPanel() {
                 value={editName}
                 onChange={(e) => setEditName(e.target.value)}
                 onBlur={() => commitRename(entry.id)}
-                onKeyDown={(e) => { if (e.key === 'Enter') commitRename(entry.id); if (e.key === 'Escape') setEditingId(null); }}
+                onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur(); if (e.key === 'Escape') setEditingId(null); }}
                 style={{
                   width: '100%', padding: '4px 8px', borderRadius: '6px', fontSize: '13px',
                   border: '1px solid var(--color-accent)', backgroundColor: 'var(--color-surface)',
@@ -154,7 +154,7 @@ export function WorkspaceSwitcherPanel() {
             {([
               ['Load', () => handleLoad(entry.id), 'var(--color-surface-2)'],
               ['Rename', () => startRename(entry.id, entry.name), 'var(--color-surface-2)'],
-              ['Export', () => { importWorkspace(entry.artifact); exportWorkspace(); }, 'var(--color-surface-2)'],
+              ['Export', () => exportWorkspace(entry.artifact), 'var(--color-surface-2)'],
               ['Delete', () => handleDelete(entry.id), '#fee2e2'],
             ] as [string, () => void, string][]).map(([label, action, bg]) => (
               <button key={label} onClick={action} style={{
