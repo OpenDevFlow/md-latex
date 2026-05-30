@@ -96,7 +96,7 @@ export function WorkspaceDiffModal({ incoming, currentDocs, onConfirm, onCancel 
         {/* Header */}
         <div style={{ padding: '24px 24px 16px', borderBottom: '1px solid var(--color-border)' }}>
           <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 600, color: 'var(--color-text)' }}>
-            Import Workspace — Preview Changes
+            Import Workspace - Preview Changes
           </h3>
           <p style={{ margin: '8px 0 0', fontSize: '13px', color: 'var(--color-text-muted)' }}>
             Select which files to import from <strong style={{ color: 'var(--color-text)' }}>{incoming.label}</strong>.
