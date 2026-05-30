@@ -4,7 +4,7 @@ import { useState } from 'react';
 
 interface Props {
   mode: 'set' | 'enter';
-  onConfirm: (passphrase: string) => void;
+  onConfirm: (passphrase: string) => Promise<boolean | void> | boolean | void;
   onCancel: () => void;
 }
 
@@ -14,11 +14,31 @@ export function PasswordModal({ mode, onConfirm, onCancel }: Props) {
   const [error, setError] = useState('');
   const [show, setShow] = useState(false);
 
-  function handleSubmit() {
+  const [retries, setRetries] = useState(0);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  async function handleSubmit() {
+    if (isSubmitting) return;
     if (!pass) { setError('Please enter a password.'); return; }
     if (mode === 'set' && pass !== confirm) { setError('Passwords do not match.'); return; }
     if (mode === 'set' && pass.length < 6) { setError('Password must be at least 6 characters.'); return; }
-    onConfirm(pass);
+
+    setIsSubmitting(true);
+    setError('');
+    try {
+      const success = await onConfirm(pass);
+      if (success === false && mode === 'enter') {
+        const nextRetries = retries + 1;
+        if (nextRetries >= 3) {
+          onCancel();
+        } else {
+          setRetries(nextRetries);
+          setError(`Incorrect password. ${3 - nextRetries} attempt${3 - nextRetries === 1 ? '' : 's'} left.`);
+        }
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -94,8 +114,8 @@ export function PasswordModal({ mode, onConfirm, onCancel }: Props) {
 
         <div style={{ display: 'flex', gap: '10px', marginTop: '24px', justifyContent: 'flex-end' }}>
           <button className="toolbar-btn secondary" onClick={onCancel}>Cancel</button>
-          <button className="toolbar-btn primary" onClick={handleSubmit}>
-            {mode === 'set' ? 'Encrypt & Export' : 'Unlock'}
+          <button className="toolbar-btn primary" onClick={handleSubmit} disabled={isSubmitting}>
+            {isSubmitting ? 'Checking...' : mode === 'set' ? 'Encrypt & Export' : 'Unlock'}
           </button>
         </div>
       </div>

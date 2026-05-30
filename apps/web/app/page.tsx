@@ -103,8 +103,8 @@ export default function EditorPage() {
     });
   }, [parseArtifactFromFile]);
 
-  async function runDropImport(passphrase?: string) {
-    if (!dropFile && !pendingUrlJson) return;
+  async function runDropImport(passphrase?: string): Promise<boolean> {
+    if (!dropFile && !pendingUrlJson) return false;
 
     let result;
     if (dropFile) {
@@ -118,12 +118,17 @@ export default function EditorPage() {
       setDropFile(null);
       setPendingUrlJson(null);
       setShowDiff(true);
+      return true;
     } else {
+      if (passphrase) {
+        return false;
+      }
       setDropFile(null);
       setPendingUrlJson(null);
       setDropError(result.error);
       setDropStatus('error');
       setTimeout(() => setDropStatus('idle'), 5000);
+      return false;
     }
   }
 
@@ -202,7 +207,11 @@ export default function EditorPage() {
         {showPasswordEnter && (
           <PasswordModal
             mode="enter"
-            onConfirm={(p) => { setShowPasswordEnter(false); runDropImport(p); }}
+            onConfirm={async (p) => { 
+              const success = await runDropImport(p); 
+              if (success) setShowPasswordEnter(false);
+              return success;
+            }}
             onCancel={() => { setShowPasswordEnter(false); setDropFile(null); setPendingUrlJson(null); }}
           />
         )}
