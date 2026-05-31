@@ -203,6 +203,27 @@ export function Toolbar() {
           <span>Save</span>
         </button>
 
+        {/* Source Control Button */}
+        <button
+          id="cloud-sync-btn"
+          onClick={() => {
+            const store = useEditorStore.getState();
+            if (!store.showSidebar) store.toggleSidebar();
+            store.setSidebarTab('source-control');
+          }}
+          className="toolbar-btn secondary"
+          title="Source Control"
+        >
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <circle cx="18" cy="18" r="3"></circle>
+            <circle cx="6" cy="6" r="3"></circle>
+            <circle cx="18" cy="6" r="3"></circle>
+            <path d="M18 9v6"></path>
+            <path d="M18 18c-3 0-5-2-7-5S6 9 6 9"></path>
+          </svg>
+          <span>Version Control</span>
+        </button>
+
         {/* Export menu */}
         <div className="relative">
           <button
