@@ -53,7 +53,7 @@ export async function pollForToken(
   intervalSeconds: number,
   isCancelled: () => boolean
 ): Promise<string> {
-  const intervalMs = intervalSeconds * 1000;
+  let intervalMs = intervalSeconds * 1000;
 
   while (!isCancelled()) {
     await new Promise((resolve) => setTimeout(resolve, intervalMs));
@@ -92,7 +92,7 @@ export async function pollForToken(
       }
       if (data.error === 'slow_down') {
         // Add extra time to interval if requested by GitHub
-        await new Promise((resolve) => setTimeout(resolve, 5000));
+        intervalMs += 5000;
         continue;
       }
       if (data.error === 'expired_token') {

@@ -302,14 +302,14 @@ export function Sidebar() {
   return (
     <div className="sidebar flex flex-col" aria-label="Sidebar">
       {/* Tabs Header */}
-      <div className="flex border-b border-border bg-surface shrink-0">
-        <button onClick={() => setSidebarTab('explorer')} className={`flex-1 text-[10px] uppercase tracking-wider font-bold border-b-2 transition-colors truncate ${sidebarTab === 'explorer' ? 'border-accent text-accent' : 'border-transparent text-text-muted hover:text-text'}`} style={{ padding: '8px' }}>
+      <div className="flex border-b border-border bg-surface shrink-0" role="tablist">
+        <button role="tab" aria-selected={sidebarTab === 'explorer'} onClick={() => setSidebarTab('explorer')} className={`flex-1 text-[10px] uppercase tracking-wider font-bold border-b-2 transition-colors truncate ${sidebarTab === 'explorer' ? 'border-accent text-accent' : 'border-transparent text-text-muted hover:text-text'}`} style={{ padding: '8px' }}>
           Explorer
         </button>
-        <button onClick={() => setSidebarTab('source-control')} className={`flex-1 text-[10px] uppercase tracking-wider font-bold border-b-2 transition-colors truncate ${sidebarTab === 'source-control' ? 'border-accent text-accent' : 'border-transparent text-text-muted hover:text-text'}`} style={{ padding: '8px' }}>
+        <button role="tab" aria-selected={sidebarTab === 'source-control'} onClick={() => setSidebarTab('source-control')} className={`flex-1 text-[10px] uppercase tracking-wider font-bold border-b-2 transition-colors truncate ${sidebarTab === 'source-control' ? 'border-accent text-accent' : 'border-transparent text-text-muted hover:text-text'}`} style={{ padding: '8px' }}>
           Source
         </button>
-        <button onClick={() => setSidebarTab('workspaces')} className={`flex-1 text-[10px] uppercase tracking-wider font-bold border-b-2 transition-colors truncate ${sidebarTab === 'workspaces' ? 'border-accent text-accent' : 'border-transparent text-text-muted hover:text-text'}`} style={{ padding: '8px' }}>
+        <button role="tab" aria-selected={sidebarTab === 'workspaces'} onClick={() => setSidebarTab('workspaces')} className={`flex-1 text-[10px] uppercase tracking-wider font-bold border-b-2 transition-colors truncate ${sidebarTab === 'workspaces' ? 'border-accent text-accent' : 'border-transparent text-text-muted hover:text-text'}`} style={{ padding: '8px' }}>
           Workspaces
         </button>
       </div>
