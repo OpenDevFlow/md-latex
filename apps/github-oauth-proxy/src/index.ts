@@ -50,15 +50,22 @@ export default {
       );
     }
 
-    const githubRes = await fetch(GITHUB_TOKEN_URL, {
-      method: 'POST',
-      headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
-      body: JSON.stringify({ client_id, device_code, grant_type }),
-    });
+    try {
+      const githubRes = await fetch(GITHUB_TOKEN_URL, {
+        method: 'POST',
+        headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+        body: JSON.stringify({ client_id, device_code, grant_type }),
+      });
 
-    const data = await githubRes.json();
-
-    return jsonResponse(data as Record<string, unknown>, githubRes.status, allowedOrigin);
+      const data = (await githubRes.json()) as Record<string, unknown>;
+      return jsonResponse(data, githubRes.status, allowedOrigin);
+    } catch {
+      return jsonResponse(
+        { error: 'upstream_error', error_description: 'Failed to reach GitHub OAuth endpoint.' },
+        502,
+        allowedOrigin,
+      );
+    }
   },
 };
 
