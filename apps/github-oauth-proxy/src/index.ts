@@ -49,6 +49,13 @@ export default {
         allowedOrigin,
       );
     }
+    if (grant_type !== 'urn:ietf:params:oauth:grant-type:device_code') {
+      return jsonResponse(
+        { error: 'invalid_request', error_description: 'Invalid grant_type for device flow.' },
+        400,
+        allowedOrigin,
+      );
+    }
 
     try {
       const githubRes = await fetch(GITHUB_TOKEN_URL, {
