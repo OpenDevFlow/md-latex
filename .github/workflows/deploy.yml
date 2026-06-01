@@ -47,6 +47,9 @@ jobs:
       - name: Build Next.js app
         # This builds all packages, including the Next.js app
         run: pnpm turbo build
+        env:
+          NEXT_PUBLIC_GITHUB_CLIENT_ID: ${{ secrets.NEXT_PUBLIC_GITHUB_CLIENT_ID }}
+          NEXT_PUBLIC_GITHUB_OAUTH_PROXY_URL: ${{ secrets.NEXT_PUBLIC_GITHUB_OAUTH_PROXY_URL }}
         
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v5
