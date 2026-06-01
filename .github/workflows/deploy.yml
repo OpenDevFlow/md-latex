@@ -44,6 +44,20 @@ jobs:
       - name: Setup Pages
         uses: actions/configure-pages@v5
         
+      - name: Validate required secrets
+        env:
+          GITHUB_CLIENT_ID: ${{ secrets.NEXT_PUBLIC_GITHUB_CLIENT_ID }}
+          OAUTH_PROXY_URL: ${{ secrets.NEXT_PUBLIC_GITHUB_OAUTH_PROXY_URL }}
+        run: |
+          missing=()
+          [[ -z "$GITHUB_CLIENT_ID" ]] && missing+=("NEXT_PUBLIC_GITHUB_CLIENT_ID")
+          [[ -z "$OAUTH_PROXY_URL" ]] && missing+=("NEXT_PUBLIC_GITHUB_OAUTH_PROXY_URL")
+          if [[ ${#missing[@]} -gt 0 ]]; then
+            echo "Error: the following required secrets are missing or empty:"
+            for s in "${missing[@]}"; do echo "  - $s"; done
+            exit 1
+          fi
+
       - name: Build Next.js app
         # This builds all packages, including the Next.js app
         run: pnpm turbo build
