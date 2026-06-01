@@ -80,6 +80,8 @@ function jsonResponse(
     status,
     headers: {
       'Content-Type': 'application/json',
+      'Cache-Control': 'no-store',
+      'Pragma': 'no-cache',
       ...(allowedOrigin ? corsHeaders(allowedOrigin) : {}),
     },
   });
