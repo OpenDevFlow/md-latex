@@ -65,6 +65,9 @@ export async function pollForToken(
       'GitHub OAuth proxy URL is not configured. Set NEXT_PUBLIC_GITHUB_OAUTH_PROXY_URL.'
     );
   }
+  if (!CLIENT_ID) {
+    throw new Error('GitHub Client ID is not configured.');
+  }
 
   let intervalMs = intervalSeconds * 1000;
 
