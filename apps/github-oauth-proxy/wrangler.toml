@@ -1,0 +1,8 @@
+name = "md-latex-github-oauth-proxy"
+main = "src/index.ts"
+compatibility_date = "2024-11-01"
+
+[vars]
+# Restrict CORS to the GitHub Pages origin.
+# Override this via `wrangler secret put ALLOWED_ORIGIN` for production.
+ALLOWED_ORIGIN = "https://opendevflow.github.io"

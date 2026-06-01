@@ -9,8 +9,14 @@ export interface DeviceCodeResponse {
 const CLIENT_ID = process.env.NEXT_PUBLIC_GITHUB_CLIENT_ID || '';
 const CORS_PROXY = 'https://corsproxy.io/?';
 
+// First-party Cloudflare Worker that performs the token exchange server-side so
+// the access_token never transits public third-party proxy infrastructure.
+const OAUTH_PROXY_URL = process.env.NEXT_PUBLIC_GITHUB_OAUTH_PROXY_URL || '';
+
 /**
- * Initiates the Device Authorization Flow
+ * Initiates the Device Authorization Flow.
+ * Uses a public CORS proxy — only a device_code and user_code are returned here,
+ * no access tokens, so third-party transit risk is low.
  */
 export async function requestDeviceCode(): Promise<DeviceCodeResponse> {
   if (!CLIENT_ID) {
@@ -18,9 +24,8 @@ export async function requestDeviceCode(): Promise<DeviceCodeResponse> {
   }
 
   const targetUrl = 'https://github.com/login/device/code';
-  // Use CORS proxy to bypass GitHub's lack of CORS on OAuth endpoints
   const url = `${CORS_PROXY}${encodeURIComponent(targetUrl)}`;
-  
+
   const response = await fetch(url, {
     method: 'POST',
     headers: {
@@ -46,13 +51,21 @@ export async function requestDeviceCode(): Promise<DeviceCodeResponse> {
 }
 
 /**
- * Polls GitHub for the access token until the user authorizes or it expires.
+ * Polls for the access token via the first-party OAuth proxy Worker.
+ * The Worker forwards the request to GitHub server-side so the access_token
+ * is never exposed to public third-party infrastructure.
  */
 export async function pollForToken(
   deviceCode: string,
   intervalSeconds: number,
   isCancelled: () => boolean
 ): Promise<string> {
+  if (!OAUTH_PROXY_URL) {
+    throw new Error(
+      'GitHub OAuth proxy URL is not configured. Set NEXT_PUBLIC_GITHUB_OAUTH_PROXY_URL.'
+    );
+  }
+
   let intervalMs = intervalSeconds * 1000;
 
   while (!isCancelled()) {
@@ -60,17 +73,10 @@ export async function pollForToken(
 
     if (isCancelled()) break;
 
-    // Append a timestamp to completely bypass proxy CDN caching!
-    const targetUrl = `https://github.com/login/oauth/access_token?_t=${Date.now()}`;
-    const url = `${CORS_PROXY}${encodeURIComponent(targetUrl)}`;
-
-    const response = await fetch(url, {
+    const response = await fetch(OAUTH_PROXY_URL, {
       method: 'POST',
       headers: {
-        'Accept': 'application/json',
         'Content-Type': 'application/json',
-        'Cache-Control': 'no-cache, no-store, must-revalidate',
-        'Pragma': 'no-cache',
       },
       body: JSON.stringify({
         client_id: CLIENT_ID,
@@ -82,16 +88,14 @@ export async function pollForToken(
     const data = await response.json();
 
     if (data.access_token) {
-      return data.access_token; // Success!
+      return data.access_token;
     }
 
     if (data.error) {
       if (data.error === 'authorization_pending') {
-        // Keep waiting
         continue;
       }
       if (data.error === 'slow_down') {
-        // Add extra time to interval if requested by GitHub
         intervalMs += 5000;
         continue;
       }
@@ -101,10 +105,10 @@ export async function pollForToken(
       if (data.error === 'access_denied') {
         throw new Error('Authorization was denied by the user.');
       }
-      
+
       throw new Error(data.error_description || data.error);
     }
   }
-  
+
   throw new Error('Cancelled');
 }
