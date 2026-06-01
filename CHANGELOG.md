@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-05-31
+
 ### Added
 - **GitHub Version Control**: Implemented a comprehensive GitHub version control system directly inside the app. Users can now view their commit history, checkout previous commits, create new branches, and commit changes without leaving the editor.
 - **Sidebar Tabs Refactor**: Redesigned the left sidebar to use a clean Tab-based navigation system, splitting the File Explorer, Workspaces, and the new Version Control panel into distinct dedicated views.
