@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Security
+- **GitHub OAuth token exchange**: Replaced the public third-party `corsproxy.io` proxy with a first-party Cloudflare Worker for the device flow token exchange. The `access_token` (full `repo` scope) no longer transits untrusted external infrastructure. CORS is restricted to the GitHub Pages origin on the Worker. `requestDeviceCode` continues using the public proxy as it returns only a `device_code` with no tokens.
+
 ## [1.2.0] - 2026-05-31
 
 ### Added
