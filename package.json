@@ -10,7 +10,7 @@
     "clean": "turbo clean && rimraf node_modules"
   },
   "devDependencies": {
-    "@types/node": "^20.0.0",
+    "@types/node": "^20.19.43",
     "eslint": "^8.57.0",
     "prettier": "^3.2.5",
     "rimraf": "^6.1.3",
