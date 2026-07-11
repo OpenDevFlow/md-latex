@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Dependency Update
+- **Dependabot dependency updates**:
+  - `@tailwindcss/postcss` to 4.3.2 ([#68](https://github.com/OpenDevFlow/mdlatex-app/pull/68))
+  - `prettier` to 3.9.4 ([#67](https://github.com/OpenDevFlow/mdlatex-app/pull/67))
+  - `vitest` to 4.1.10 ([#66](https://github.com/OpenDevFlow/mdlatex-app/pull/66))
+  - `@codemirror/language` to 6.12.4 ([#65](https://github.com/OpenDevFlow/mdlatex-app/pull/65)).
 
 ## [1.2.1] - 2026-06-02
 
