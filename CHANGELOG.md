@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Dependency Update
-- **Dependabot dependency update** : Some javascript automated dependency update.
+- **Dependabot dependency updates**: Updated `@tailwindcss/postcss` to 4.3.2 ([#68](https://github.com/OpenDevFlow/mdlatex-app/pull/68)), `prettier` to 3.9.4 ([#67](https://github.com/OpenDevFlow/mdlatex-app/pull/67)), `vitest` to 4.1.10 ([#66](https://github.com/OpenDevFlow/mdlatex-app/pull/66)), and `@codemirror/language` to 6.12.4 ([#65](https://github.com/OpenDevFlow/mdlatex-app/pull/65)).
 
 ## [1.2.1] - 2026-06-02
 
